@@ -1,0 +1,19 @@
+# IDE / Editors
+.idea/
+.vscode/
+*.iml
+*.sublime-*
+
+# Build & Dependencies
+backend/target/
+frontend/node_modules/
+frontend/dist/
+.maven-temp/
+
+# Log files
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db

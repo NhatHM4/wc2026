@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: worldcup-betting-app
+  
+  # Cấu hình Database kết nối tới PostgreSQL container chạy bằng Docker Compose.
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/betdb}
+    driver-class-name: org.postgresql.Driver
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+# Cấu hình Token API Lịch thi đấu bóng đá từ football-data.org
+football-api:
+  token: "b462b4d4b35c4b5185c165f6782f37e4"
+  base-url: "https://api.football-data.org/v4"
+
+# Cấu hình JWT cho xác thực người dùng
+jwt:
+  secret: "3c968a3b576825595679261a8684711867156942065842831089201948723049" # Base64 hoặc chuỗi bí mật tối thiểu 256 bits
+  expiration-ms: 86400000 # 1 ngày
