@@ -95,7 +95,7 @@ jobs:
           file: ./frontend/Dockerfile
           push: true
           build-args: |
-            VITE_API_BASE_URL=http://47.131.27.196:8080
+            VITE_API_BASE_URL=/
           tags: |
             dinhdatqn123/wc2026-fe:latest
             dinhdatqn123/wc2026-fe:${{ github.sha }}
