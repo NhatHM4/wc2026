@@ -29,7 +29,7 @@ services:
     image: dinhdatqn123/wc2026-fe:latest
     container_name: bet-frontend
     ports:
-      - "80:80"
+      - "3000:80"
     depends_on:
       - backend
     restart: always
