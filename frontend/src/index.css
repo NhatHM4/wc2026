@@ -336,4 +336,414 @@ body {
   animation: spin 1s linear infinite;
 }
 
+/* ==========================================
+   Responsive UI System & Styling Additions
+   ========================================== */
+
+/* Container margins adjustment */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px !important;
+  }
+}
+
+/* Responsive Navbar styles */
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #fff;
+}
+
+.navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.navbar-right-mobile {
+  display: none;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar-mobile-balance {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.navbar-mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-main);
+  cursor: pointer;
+  padding: 6px;
+  outline: none;
+}
+
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-grow: 1;
+  margin-left: 40px;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+
+@media (max-width: 992px) {
+  .navbar-right-mobile {
+    display: flex;
+  }
+
+  .navbar-mobile-toggle {
+    display: block;
+  }
+
+  .navbar-menu {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: calc(100% + 16px);
+    left: 0;
+    right: 0;
+    background: rgba(15, 23, 42, 0.98);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 16px;
+    gap: 20px;
+    align-items: stretch;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    margin-left: 0;
+    z-index: 999;
+  }
+
+  .navbar-menu.is-open {
+    display: flex;
+  }
+
+  .navbar-links {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .navbar-links a {
+    width: 100%;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  }
+
+  .navbar-actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    margin-left: 0;
+    gap: 12px;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+  
+  .navbar-actions > div {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+
+/* Dashboard Responsive Styles */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.dashboard-title-group h1 {
+  font-size: 36px;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -1px;
+}
+
+@media (max-width: 576px) {
+  .dashboard-header {
+    margin-bottom: 24px;
+    gap: 16px;
+  }
+  .dashboard-title-group h1 {
+    font-size: 28px !important;
+  }
+}
+
+/* Jackpot Banner */
+.jackpot-panel {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  padding: 32px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+  gap: 30px;
+}
+
+.jackpot-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.jackpot-amount {
+  font-size: 42px;
+  font-weight: 900;
+  color: #fff;
+  margin-top: 4px;
+  letter-spacing: -0.5px;
+}
+
+.jackpot-stats {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 32px;
+  min-width: 240px;
+}
+
+@media (max-width: 768px) {
+  .jackpot-panel {
+    padding: 20px;
+    margin-bottom: 32px;
+    gap: 20px;
+  }
+  .jackpot-info {
+    gap: 12px;
+    width: 100%;
+  }
+  .jackpot-amount {
+    font-size: 28px !important;
+  }
+  .jackpot-stats {
+    width: 100%;
+    min-width: unset;
+    padding: 16px 20px;
+  }
+}
+
+/* Tabs list custom scroll */
+.tabs-container {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+  gap: 24px;
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabs-container::-webkit-scrollbar {
+  display: none; /* Safari / Chrome */
+}
+
+.tabs-container button {
+  white-space: nowrap;
+}
+
+/* Matches Grid */
+.matches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 24px;
+  margin-bottom: 56px;
+}
+
+@media (max-width: 480px) {
+  .matches-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+    gap: 16px;
+  }
+}
+
+/* Match card teams section */
+.match-teams-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin: 20px 0;
+  flex-grow: 1;
+}
+
+.match-team-name-left {
+  flex: 1;
+  text-align: right;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.match-team-name-right {
+  flex: 1;
+  text-align: left;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.match-score-display {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  min-width: 70px;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+
+@media (max-width: 576px) {
+  .match-teams-container {
+    gap: 12px;
+  }
+  .match-team-name-left, .match-team-name-right {
+    font-size: 14px !important;
+  }
+  .match-score-display {
+    font-size: 18px !important;
+    padding: 6px 12px;
+    min-width: 60px;
+  }
+}
+
+/* Wallet Page Styles */
+.wallet-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+  margin-bottom: 48px;
+}
+
+@media (max-width: 768px) {
+  .wallet-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px;
+  }
+}
+
+/* Table styling wrapper for smooth scrolling */
+.table-scroll-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll-container table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  min-width: 600px;
+}
+
+/* Admin layout responsive styling */
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .admin-header > div:first-child {
+    width: 100%;
+  }
+  .admin-header > div:last-child {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .admin-header button {
+    flex-grow: 1;
+  }
+}
+
+/* Leaderboard Podium */
+.podium-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 20px;
+  padding: 32px 0 40px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.podium-rank-1 {
+  text-align: center;
+  min-width: 150px;
+  transform: scale(1.15);
+  margin: 0 20px;
+  order: 2;
+}
+
+.podium-rank-2 {
+  text-align: center;
+  min-width: 120px;
+  order: 1;
+}
+
+.podium-rank-3 {
+  text-align: center;
+  min-width: 120px;
+  order: 3;
+}
+
+@media (max-width: 576px) {
+  .podium-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 24px 0;
+  }
+  .podium-rank-1 {
+    transform: none;
+    margin: 0;
+    order: 1; /* Rank 1 top on mobile */
+  }
+  .podium-rank-2 {
+    order: 2; /* Rank 2 second on mobile */
+  }
+  .podium-rank-3 {
+    order: 3; /* Rank 3 third on mobile */
+  }
+}
+
+
+
 

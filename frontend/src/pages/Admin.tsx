@@ -279,9 +279,9 @@ const Admin: React.FC = () => {
   }
 
   return (
-    <div className="container" style={{ padding: '40px 24px', maxWidth: '1000px' }}>
+    <div className="container" style={{ padding: '40px 16px', maxWidth: '1000px' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="admin-header">
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent)', marginBottom: '8px' }}>
             <ShieldAlert size={20} />
@@ -330,7 +330,7 @@ const Admin: React.FC = () => {
 
       {/* System Mode Config Card */}
       <div className="glass-panel" style={{
-        padding: '20px 24px',
+        padding: '20px 16px',
         marginBottom: '32px',
         display: 'flex',
         alignItems: 'center',
@@ -363,7 +363,7 @@ const Admin: React.FC = () => {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }} className="admin-system-buttons">
           <button
             onClick={() => handleToggleMode('SIMULATION')}
             className="btn"
@@ -440,7 +440,8 @@ const Admin: React.FC = () => {
         gap: '16px', 
         borderBottom: '1px solid var(--border)', 
         marginBottom: '32px',
-        paddingBottom: '2px'
+        paddingBottom: '2px',
+        flexWrap: 'wrap'
       }}>
         <button
           onClick={() => setActiveTab('matches')}
@@ -510,10 +511,10 @@ const Admin: React.FC = () => {
           ) : (
             <div style={{ display: 'grid', gap: '16px' }}>
               {filteredMatches.map((match) => (
-                <div key={match.id} className="glass-panel" style={{ padding: '20px 24px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
+                <div key={match.id} className="glass-panel" style={{ padding: '20px 16px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '20px' }}>
                   
                   {/* Match Info */}
-                  <div style={{ flex: 1, minWidth: '280px' }}>
+                  <div style={{ flex: 1, minWidth: '240px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                       {getStatusBadge(match.status, match.settled)}
                       <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
@@ -570,8 +571,8 @@ const Admin: React.FC = () => {
               Chưa có tài khoản người dùng nào.
             </div>
           ) : (
-            <div className="glass-panel" style={{ overflowX: 'auto', padding: '8px' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
+            <div className="glass-panel table-scroll-container" style={{ padding: '8px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '650px' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>
                     <th style={{ padding: '16px' }}>Tên đăng nhập</th>

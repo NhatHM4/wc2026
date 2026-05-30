@@ -73,21 +73,14 @@ const Wallet: React.FC = () => {
   };
 
   return (
-    <div className="container" style={{ padding: '40px 24px' }}>
+    <div className="container" style={{ padding: '40px 16px' }}>
       <h1 style={{ fontSize: '32px', fontWeight: 800, marginBottom: '8px' }}>Quản lý ví tiền</h1>
       <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>
         Theo dõi số dư, nạp rút tiền giả lập và lịch sử giao dịch.
       </p>
 
       {/* Main Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '32px',
-        alignItems: 'start',
-        marginBottom: '48px',
-        gridAutoRows: 'auto'
-      }}>
+      <div className="wallet-grid">
         
         {/* Left Column: Balance & Quick actions */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -95,25 +88,29 @@ const Wallet: React.FC = () => {
           <div className="glass-panel" style={{
             background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.05))',
             border: '1px solid rgba(16, 185, 129, 0.2)',
-            padding: '32px',
+            padding: '24px',
             borderRadius: '20px',
             display: 'flex',
             alignItems: 'center',
-            gap: '24px'
+            gap: '16px',
+            flexWrap: 'wrap'
           }}>
             <div style={{
               background: 'rgba(16, 185, 129, 0.1)',
               borderRadius: '12px',
               padding: '16px',
-              color: 'var(--primary)'
+              color: 'var(--primary)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}>
               <WalletIcon size={36} />
             </div>
-            <div>
+            <div style={{ minWidth: '180px' }}>
               <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Số Dư Ví Hiện Tại
               </span>
-              <h2 style={{ fontSize: '36px', fontWeight: 800, color: '#fff', marginTop: '4px' }}>
+              <h2 style={{ fontSize: '30px', fontWeight: 800, color: '#fff', marginTop: '4px', wordBreak: 'break-all' }}>
                 {balance.toLocaleString('vi-VN')} <span style={{ fontSize: '18px', color: 'var(--primary)' }}>VND</span>
               </h2>
             </div>
@@ -150,7 +147,7 @@ const Wallet: React.FC = () => {
         </div>
 
         {/* Right Column: Transaction Actions */}
-        <div className="glass-panel" style={{ padding: '32px' }}>
+        <div className="glass-panel" style={{ padding: '24px' }}>
           <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '24px' }}>Giao dịch ví</h3>
           
           {error && (
@@ -210,7 +207,8 @@ const Wallet: React.FC = () => {
                 padding: '12px',
                 color: 'var(--error)',
                 borderColor: 'rgba(239, 68, 68, 0.2)',
-                background: 'rgba(239, 68, 68, 0.02)'
+                background: 'rgba(239, 68, 68, 0.02)',
+                justifyContent: 'center'
               }}
               onClick={handleWithdraw}
               disabled={loading}
@@ -221,7 +219,7 @@ const Wallet: React.FC = () => {
             
             <button
               className="btn btn-primary"
-              style={{ display: 'flex', gap: '8px', padding: '12px' }}
+              style={{ display: 'flex', gap: '8px', padding: '12px', justifyContent: 'center' }}
               onClick={handleDeposit}
               disabled={loading}
             >
@@ -236,7 +234,7 @@ const Wallet: React.FC = () => {
       </div>
 
       {/* Transaction History Section */}
-      <div className="glass-panel" style={{ padding: '32px' }}>
+      <div className="glass-panel" style={{ padding: '24px' }}>
         <h3 style={{
           fontSize: '18px',
           fontWeight: 700,
@@ -255,8 +253,8 @@ const Wallet: React.FC = () => {
         {transactions.length === 0 ? (
           <p style={{ color: 'var(--text-muted)', textAlign: 'left' }}>Chưa có giao dịch nào được ghi nhận.</p>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <div className="table-scroll-container">
+            <table>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: '14px' }}>
                   <th style={{ padding: '12px 8px' }}>Thời gian</th>

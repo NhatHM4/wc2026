@@ -169,7 +169,8 @@ const Leaderboard: React.FC = () => {
         padding: '6px',
         maxWidth: '500px',
         margin: '0 auto 32px auto',
-        gap: '4px'
+        gap: '4px',
+        flexWrap: 'wrap'
       }}>
         <button
           onClick={() => setSortBy('win_rate')}
@@ -238,18 +239,10 @@ const Leaderboard: React.FC = () => {
       ) : (
         <div className="glass-panel" style={{ padding: '16px', overflow: 'hidden' }}>
           {/* Top 3 highlights */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'flex-end',
-            gap: '20px',
-            padding: '32px 0 40px 0',
-            borderBottom: '1px solid var(--border)',
-            flexWrap: 'wrap'
-          }}>
+          <div className="podium-container">
             {/* Rank 2 */}
             {data[1] && (
-              <div style={{ textAlign: 'center', minWidth: '120px' }}>
+              <div className="podium-rank-2">
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>{getRankBadge(2)}</div>
                 <div style={{ fontSize: '15px', fontWeight: 700 }}>{data[1].username}</div>
                 {renderHighlightStats(data[1])}
@@ -258,7 +251,7 @@ const Leaderboard: React.FC = () => {
 
             {/* Rank 1 */}
             {data[0] && (
-              <div style={{ textAlign: 'center', minWidth: '150px', transform: 'scale(1.15)', margin: '0 20px' }}>
+              <div className="podium-rank-1">
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>
                   <Trophy size={28} className="glow-amber" style={{ color: 'var(--accent)', borderRadius: '50%' }} />
                 </div>
@@ -269,7 +262,7 @@ const Leaderboard: React.FC = () => {
 
             {/* Rank 3 */}
             {data[2] && (
-              <div style={{ textAlign: 'center', minWidth: '120px' }}>
+              <div className="podium-rank-3">
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>{getRankBadge(3)}</div>
                 <div style={{ fontSize: '15px', fontWeight: 700 }}>{data[2].username}</div>
                 {renderHighlightStats(data[2])}

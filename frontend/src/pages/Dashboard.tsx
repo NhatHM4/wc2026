@@ -203,20 +203,11 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="container" style={{ padding: '40px 24px' }}>
+    <div className="container" style={{ padding: '40px 16px' }}>
       {/* Header & Sync */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '40px',
-        flexWrap: 'wrap',
-        gap: '20px'
-      }}>
-        <div>
-          <h1 style={{ fontSize: '36px', fontWeight: 800, margin: 0, letterSpacing: '-1px' }}>
-            WORLD CUP 2026
-          </h1>
+      <div className="dashboard-header">
+        <div className="dashboard-title-group">
+          <h1>WORLD CUP 2026</h1>
           <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>
             Dự đoán chính xác tỉ số - Chia nhau giải thưởng khổng lồ
           </p>
@@ -236,24 +227,16 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Jackpot & Platform Stats */}
-      <div className="glass-panel glow-amber" style={{
-        background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95))',
-        border: '1px solid rgba(245, 158, 11, 0.25)',
-        padding: '32px',
-        borderRadius: '24px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '48px',
-        flexWrap: 'wrap',
-        gap: '30px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+      <div className="glass-panel glow-amber jackpot-panel">
+        <div className="jackpot-info">
           <div style={{
             background: 'rgba(245, 158, 11, 0.1)',
             borderRadius: '16px',
             padding: '20px',
-            color: 'var(--accent)'
+            color: 'var(--accent)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}>
             <Trophy size={48} />
           </div>
@@ -261,7 +244,7 @@ const Dashboard: React.FC = () => {
             <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>
               Jackpot
             </span>
-            <h2 style={{ fontSize: '42px', fontWeight: 900, color: '#fff', marginTop: '4px', letterSpacing: '-0.5px' }}>
+            <h2 className="jackpot-amount">
               {systemFund.jackpotAmount.toLocaleString('vi-VN')} <span style={{ color: 'var(--accent)', fontSize: '24px' }}>VND</span>
             </h2>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -270,13 +253,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.03)',
-          border: '1px solid var(--border)',
-          borderRadius: '16px',
-          padding: '20px 32px',
-          minWidth: '240px'
-        }}>
+        <div className="jackpot-stats">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '14px', fontWeight: 500 }}>
             <Coins size={16} style={{ color: 'var(--primary)' }} />
             Quỹ nhậu đã trích (10%) từ mỗi trận:
@@ -288,12 +265,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Tabs Filter */}
-      <div style={{
-        display: 'flex',
-        borderBottom: '1px solid var(--border)',
-        marginBottom: '32px',
-        gap: '24px'
-      }}>
+      <div className="tabs-container">
         {[
           { key: 'SCHEDULED', label: 'Sắp thi đấu' },
           { key: 'IN_PLAY', label: 'Đang diễn ra' },
@@ -369,12 +341,7 @@ const Dashboard: React.FC = () => {
           <div>Không có trận đấu nào trong trạng thái này.</div>
         </div>
       ) : (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
-          gap: '24px',
-          marginBottom: '56px'
-        }}>
+        <div className="matches-grid">
           {filteredMatches.map(match => (
             <div key={match.id} className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '100%' }}>
               {/* Match Header */}
@@ -389,31 +356,16 @@ const Dashboard: React.FC = () => {
               </div>
 
               {/* Teams & Score */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '24px',
-                margin: '20px 0',
-                flexGrow: 1
-              }}>
-                <div style={{ flex: 1, textAlign: 'right', fontWeight: 700, fontSize: '16px' }}>{match.homeTeam}</div>
+              <div className="match-teams-container">
+                <div className="match-team-name-left">{match.homeTeam}</div>
 
-                <div style={{
-                  background: 'rgba(0, 0, 0, 0.2)',
-                  padding: '8px 16px',
-                  borderRadius: '8px',
-                  fontSize: '22px',
-                  fontWeight: 800,
+                <div className="match-score-display" style={{
                   color: match.status === 'FINISHED' ? 'var(--accent)' : '#fff',
-                  minWidth: '70px',
-                  textAlign: 'center',
-                  border: '1px solid var(--border)'
                 }}>
                   {match.status === 'SCHEDULED' ? 'vs' : `${match.homeScore} - ${match.awayScore}`}
                 </div>
 
-                <div style={{ flex: 1, textAlign: 'left', fontWeight: 700, fontSize: '16px' }}>{match.awayTeam}</div>
+                <div className="match-team-name-right">{match.awayTeam}</div>
               </div>
 
               {/* Match Footer */}
@@ -528,8 +480,8 @@ const Dashboard: React.FC = () => {
           {myBets.length === 0 ? (
             <p style={{ color: 'var(--text-muted)', textAlign: 'left' }}>Bạn chưa đặt cược trận đấu nào.</p>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <div className="table-scroll-container">
+              <table>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-muted)', fontSize: '14px' }}>
                     <th style={{ padding: '12px 8px' }}>Trận đấu</th>
