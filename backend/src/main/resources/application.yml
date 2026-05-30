@@ -26,4 +26,4 @@ football-api:
 # Cấu hình JWT cho xác thực người dùng
 jwt:
   secret: "3c968a3b576825595679261a8684711867156942065842831089201948723049" # Base64 hoặc chuỗi bí mật tối thiểu 256 bits
-  expiration-ms: 86400000 # 1 ngày
+  expiration-ms: 864000000 # 10 ngày
