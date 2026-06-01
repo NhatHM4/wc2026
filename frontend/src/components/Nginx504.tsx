@@ -1,9 +1,30 @@
 import React, { useEffect, useState } from 'react';
 
-const Nginx504: React.FC = () => {
+interface Nginx504Props {
+  onUnlock?: (passcode: string) => boolean;
+}
+
+const Nginx504: React.FC<Nginx504Props> = ({ onUnlock }) => {
   const [rayId, setRayId] = useState('');
   const [utcTime, setUtcTime] = useState('');
   const [hostname, setHostname] = useState('domain.com');
+  const [showSecretInput, setShowSecretInput] = useState(false);
+  const [inputPasscode, setInputPasscode] = useState('');
+  const [isError, setIsError] = useState(false);
+
+  const handleSecretSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onUnlock) {
+      const success = onUnlock(inputPasscode);
+      if (success) {
+        setIsError(false);
+      } else {
+        setIsError(true);
+        setInputPasscode('');
+        setTimeout(() => setIsError(false), 500);
+      }
+    }
+  };
 
   useEffect(() => {
     // Generate a realistic 16-hex character Ray ID
@@ -63,14 +84,43 @@ const Nginx504: React.FC = () => {
         }}>
           Error 504
         </h1>
-        <div style={{
-          fontSize: '14px',
-          color: '#8c8b8d',
-          fontFamily: 'monospace',
-          marginBottom: '20px',
-          letterSpacing: '0.3px'
-        }}>
+        <div 
+          onDoubleClick={() => onUnlock && setShowSecretInput(true)}
+          style={{
+            fontSize: '14px',
+            color: '#8c8b8d',
+            fontFamily: 'monospace',
+            marginBottom: '20px',
+            letterSpacing: '0.3px',
+            cursor: onUnlock ? 'pointer' : 'default',
+            userSelect: 'none'
+          }}
+          title={onUnlock ? "Double-click to unlock" : undefined}
+        >
           Ray ID: {rayId} &bull; {utcTime}
+          {showSecretInput && (
+            <form onSubmit={handleSecretSubmit} style={{ display: 'inline-block', marginLeft: '15px' }}>
+              <input
+                type="password"
+                value={inputPasscode}
+                onChange={(e) => setInputPasscode(e.target.value)}
+                placeholder="Key..."
+                autoFocus
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: isError ? '1px solid #ff4d4f' : '1px solid #8c8b8d',
+                  color: isError ? '#ff4d4f' : '#8c8b8d',
+                  fontSize: '12px',
+                  fontFamily: 'monospace',
+                  outline: 'none',
+                  width: '100px',
+                  padding: '0 4px',
+                  transition: 'border-color 0.2s, color 0.2s'
+                }}
+              />
+            </form>
+          )}
         </div>
         <h2 style={{
           fontSize: '32px',
