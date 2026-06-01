@@ -31,12 +31,22 @@ public class DataInitializer implements CommandLineRunner {
                     .username("admin")
                     .password(passwordEncoder.encode("haminhnhat123"))
                     .role("OWNER")
+                    .approved(true)
                     .build();
             User savedOwner = userRepository.save(owner);
             
             // Auto create wallet for owner
             walletService.createWallet(savedOwner.getId());
             log.info("OWNER user initialized successfully!");
+        } else {
+            // Đảm bảo tài khoản admin hiện tại đã được phê duyệt để tránh bị khóa
+            userRepository.findByUsername("admin").ifPresent(owner -> {
+                if (!owner.isApproved()) {
+                    owner.setApproved(true);
+                    userRepository.save(owner);
+                    log.info("Successfully approved existing admin user.");
+                }
+            });
         }
     }
 }

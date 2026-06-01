@@ -62,7 +62,8 @@ public class AuthController {
                     jwt,
                     user.getId(),
                     user.getUsername(),
-                    user.getRole()
+                    user.getRole(),
+                    user.isApproved()
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", "Tên đăng nhập hoặc mật khẩu không chính xác"));
@@ -81,6 +82,7 @@ public class AuthController {
         response.put("id", user.getId());
         response.put("username", user.getUsername());
         response.put("role", user.getRole());
+        response.put("approved", user.isApproved());
         
         return ResponseEntity.ok(response);
     }

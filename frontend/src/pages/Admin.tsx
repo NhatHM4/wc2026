@@ -21,6 +21,7 @@ interface UserEntry {
   id: string;
   username: string;
   role: string;
+  approved: boolean;
   createdAt: string;
 }
 
@@ -243,6 +244,16 @@ const Admin: React.FC = () => {
       showError('Đồng bộ từ API thất bại: ' + (err.response?.data?.message || err.message));
     } finally {
       setSyncingAPI(false);
+    }
+  };
+
+  const handleApproveUser = async (userId: string, username: string) => {
+    try {
+      const response = await axios.post(`/api/admin/users/${userId}/approve`);
+      showSuccess(response.data.message || `Đã phê duyệt tài khoản '${username}' thành công!`);
+      fetchUsers();
+    } catch (err: any) {
+      showError('Phê duyệt tài khoản thất bại: ' + (err.response?.data?.message || err.message));
     }
   };
 
@@ -577,6 +588,7 @@ const Admin: React.FC = () => {
                   <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>
                     <th style={{ padding: '16px' }}>Tên đăng nhập</th>
                     <th style={{ padding: '16px' }}>Vai trò</th>
+                    <th style={{ padding: '16px' }}>Trạng thái</th>
                     <th style={{ padding: '16px' }}>Ngày tạo</th>
                     <th style={{ padding: '16px', textAlign: 'right' }}>Hành động</th>
                   </tr>
@@ -598,10 +610,54 @@ const Admin: React.FC = () => {
                           {u.role}
                         </span>
                       </td>
+                      <td style={{ padding: '16px' }}>
+                        {u.approved ? (
+                          <span style={{
+                            padding: '3px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            color: 'var(--primary)',
+                            border: '1px solid rgba(16, 185, 129, 0.2)'
+                          }}>
+                            Đã duyệt
+                          </span>
+                        ) : (
+                          <span style={{
+                            padding: '3px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            color: 'var(--error)',
+                            border: '1px solid rgba(239, 68, 68, 0.2)'
+                          }}>
+                            Chờ duyệt
+                          </span>
+                        )}
+                      </td>
                       <td style={{ padding: '16px', color: 'var(--text-muted)', fontSize: '13px' }}>
                         {new Date(u.createdAt).toLocaleDateString('vi-VN')}
                       </td>
-                      <td style={{ padding: '16px', textAlign: 'right', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                      <td style={{ padding: '16px', textAlign: 'right', display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                        {!u.approved && (
+                          <button
+                            onClick={() => handleApproveUser(u.id, u.username)}
+                            className="btn btn-primary"
+                            style={{ 
+                              padding: '6px 12px', 
+                              display: 'inline-flex', 
+                              gap: '6px', 
+                              fontSize: '13px',
+                              background: 'rgba(16, 185, 129, 0.15)',
+                              color: 'var(--primary)',
+                              border: '1px solid rgba(16, 185, 129, 0.3)'
+                            }}
+                          >
+                            Duyệt
+                          </button>
+                        )}
                         <button
                           onClick={() => setSelectedUser(u)}
                           className="btn btn-secondary"

@@ -14,4 +14,5 @@ public class JwtResponse {
     private UUID id;
     private String username;
     private String role;
+    private boolean approved;
 }

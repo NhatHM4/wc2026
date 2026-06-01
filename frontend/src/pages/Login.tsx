@@ -25,9 +25,9 @@ const Login: React.FC = () => {
 
     try {
       const response = await axios.post('/api/auth/login', { username, password });
-      const { token, id, role } = response.data;
+      const { token, id, role, approved } = response.data;
       
-      login(token, { id, username: response.data.username, role });
+      login(token, { id, username: response.data.username, role, approved });
       navigate('/');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng thử lại.');

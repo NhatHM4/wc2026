@@ -23,6 +23,10 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private String role; // USER, ADMIN
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    @Builder.Default
+    private boolean approved = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

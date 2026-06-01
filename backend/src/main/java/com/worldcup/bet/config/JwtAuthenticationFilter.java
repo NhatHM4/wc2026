@@ -30,7 +30,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = getJwtFromRequest(request);
 
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+                boolean approved = tokenProvider.getApprovedFromJwt(jwt);
                 String username = tokenProvider.getUsernameFromJwt(jwt);
+
+                if (!approved) {
+                    String uri = request.getRequestURI();
+                    if (!uri.startsWith("/api/auth/")) {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        response.setContentType("application/json;charset=UTF-8");
+                        response.getWriter().write("{\"message\": \"Tài khoản chưa được kích hoạt bởi Admin\"}");
+                        return;
+                    }
+                }
 
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(

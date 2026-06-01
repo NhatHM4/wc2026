@@ -40,8 +40,25 @@ public class AdminController {
                     "id", (Object) u.getId(),
                     "username", (Object) u.getUsername(),
                     "role", (Object) u.getRole(),
+                    "approved", (Object) u.isApproved(),
                     "createdAt", (Object) u.getCreatedAt())).toList();
             return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    // Phê duyệt tài khoản người dùng
+    @PostMapping("/users/{userId}/approve")
+    public ResponseEntity<?> approveUser(@PathVariable("userId") UUID userId) {
+        try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Không tìm thấy người dùng"));
+
+            user.setApproved(true);
+            userRepository.save(user);
+
+            return ResponseEntity.ok(Map.of("message", "Đã phê duyệt tài khoản '" + user.getUsername() + "' thành công!"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }

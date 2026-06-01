@@ -74,9 +74,9 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
-  // Tự động tải lại số dư và lịch sử giao dịch khi người dùng đăng nhập
+  // Tự động tải lại số dư và lịch sử giao dịch khi người dùng đăng nhập và đã được phê duyệt
   useEffect(() => {
-    if (user) {
+    if (user && user.approved) {
       refreshBalance();
       refreshTransactions();
     } else {
