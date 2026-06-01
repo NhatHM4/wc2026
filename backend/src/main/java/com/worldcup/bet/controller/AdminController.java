@@ -209,6 +209,27 @@ public class AdminController {
         }
     }
 
+    // Thay đổi chế độ mã hóa dữ liệu
+    @PostMapping("/system/encrypt-mode")
+    public ResponseEntity<?> setEncryptMode(@RequestBody Map<String, Boolean> request) {
+        try {
+            Boolean enabled = request.get("encryptMode");
+            if (enabled == null) {
+                throw new IllegalArgumentException("Cấu hình mã hóa không hợp lệ");
+            }
+
+            com.worldcup.bet.entity.SystemFund fund = systemFundRepository.findOrCreateSingleFund();
+            fund.setEncryptMode(enabled);
+            systemFundRepository.save(fund);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Đã " + (enabled ? "BẬT" : "TẮT") + " chế độ mã hóa dữ liệu thành công!",
+                    "encryptMode", fund.isEncryptMode()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
     // Đồng bộ tỉ số và trả thưởng từ API bóng đá ngay lập tức
     @PostMapping("/sync-matches")
     public ResponseEntity<?> forceSyncMatches() {

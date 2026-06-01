@@ -55,7 +55,7 @@ public class WebSecurityConfig {
                 "http://localhost:5173",
                 "http://localhost:3000",
                 "http://47.131.27.196",
-                "https://bet.nhathm4.io.vn")); // Vite dev server
+                "https://lgbt.nhathm4.io.vn")); // Vite dev server
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With"));
         configuration.setExposedHeaders(Collections.singletonList("Authorization"));

@@ -24,6 +24,10 @@ public class SystemFund extends BaseEntity {
     @Column(name = "system_mode")
     private String systemMode; // REAL, SIMULATION
 
+    @Column(name = "encrypt_mode", nullable = false, columnDefinition = "boolean default false")
+    @Builder.Default
+    private boolean encryptMode = false;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

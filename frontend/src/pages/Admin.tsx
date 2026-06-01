@@ -43,6 +43,10 @@ const Admin: React.FC = () => {
   const [systemMode, setSystemMode] = useState<'REAL' | 'SIMULATION'>('SIMULATION');
   const [togglingMode, setTogglingMode] = useState(false);
 
+  // Encryption mode states
+  const [encryptModeEnabled, setEncryptModeEnabled] = useState(false);
+  const [togglingEncrypt, setTogglingEncrypt] = useState(false);
+
   // Search filter
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -99,8 +103,13 @@ const Admin: React.FC = () => {
   const fetchSystemMode = async () => {
     try {
       const response = await axios.get('/api/system/fund');
-      if (response.data && response.data.systemMode) {
-        setSystemMode(response.data.systemMode);
+      if (response.data) {
+        if (response.data.systemMode) {
+          setSystemMode(response.data.systemMode);
+        }
+        if (response.data.encryptMode !== undefined) {
+          setEncryptModeEnabled(response.data.encryptMode);
+        }
       }
     } catch (err) {
       console.error('Không thể lấy chế độ hệ thống:', err);
@@ -244,6 +253,20 @@ const Admin: React.FC = () => {
       showError('Đồng bộ từ API thất bại: ' + (err.response?.data?.message || err.message));
     } finally {
       setSyncingAPI(false);
+    }
+  };
+
+  const handleToggleEncryptMode = async (enabled: boolean) => {
+    if (enabled === encryptModeEnabled) return;
+    setTogglingEncrypt(true);
+    try {
+      const response = await axios.post('/api/admin/system/encrypt-mode', { encryptMode: enabled });
+      setEncryptModeEnabled(response.data.encryptMode);
+      showSuccess(`Đã ${enabled ? 'BẬT' : 'TẮT'} chế độ mã hóa dữ liệu thành công!`);
+    } catch (err: any) {
+      showError('Chuyển đổi chế độ mã hóa thất bại: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setTogglingEncrypt(false);
     }
   };
 
@@ -404,6 +427,72 @@ const Admin: React.FC = () => {
             disabled={togglingMode}
           >
             Chế độ Thực tế
+          </button>
+        </div>
+      </div>
+
+      {/* Encryption Config Card */}
+      <div className="glass-panel" style={{
+        padding: '20px 16px',
+        marginBottom: '32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '16px',
+        borderLeft: encryptModeEnabled ? '4px solid var(--primary)' : '4px solid var(--text-muted)'
+      }}>
+        <div style={{ flex: 1, minWidth: '280px' }}>
+          <div style={{ fontWeight: 700, fontSize: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span>Chế độ mã hóa dữ liệu (Encrypt Mode):</span>
+            <span style={{
+              color: encryptModeEnabled ? 'var(--primary)' : 'var(--text-muted)',
+              textTransform: 'uppercase',
+              background: encryptModeEnabled ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+              padding: '4px 10px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 800,
+              border: encryptModeEnabled ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid var(--border)'
+            }}>
+              {encryptModeEnabled ? 'ĐANG BẬT (ON)' : 'ĐANG TẮT (OFF)'}
+            </span>
+          </div>
+          <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '8px', lineHeight: '1.5' }}>
+            Khi BẬT, toàn bộ dữ liệu trả về từ API và thông tin hiển thị trên màn hình sẽ bị mã hóa bằng khóa bí mật. Người dùng cần nhập khóa để giải mã trước khi xem.
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => handleToggleEncryptMode(false)}
+            className="btn"
+            style={{
+              padding: '8px 16px',
+              fontSize: '13px',
+              fontWeight: 600,
+              background: !encryptModeEnabled ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+              color: !encryptModeEnabled ? '#fff' : 'var(--text-muted)',
+              border: !encryptModeEnabled ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid var(--border)'
+            }}
+            disabled={togglingEncrypt}
+          >
+            Tắt Mã Hóa
+          </button>
+          <button
+            onClick={() => handleToggleEncryptMode(true)}
+            className="btn"
+            style={{
+              padding: '8px 16px',
+              fontSize: '13px',
+              fontWeight: 600,
+              background: encryptModeEnabled ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+              color: encryptModeEnabled ? 'var(--primary)' : 'var(--text-muted)',
+              border: encryptModeEnabled ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border)'
+            }}
+            disabled={togglingEncrypt}
+          >
+            Bật Mã Hóa
           </button>
         </div>
       </div>

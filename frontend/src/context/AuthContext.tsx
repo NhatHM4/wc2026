@@ -18,8 +18,30 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+import { decryptData } from '../utils/crypto';
+
 // Cấu hình URL cơ sở của backend API
 axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
+// Tự động giải mã dữ liệu trả về từ API nếu ở chế độ mã hóa
+axios.interceptors.response.use(
+  (response) => {
+    if (response.data && response.data.encryptedData) {
+      const decryptedStr = decryptData(response.data.encryptedData);
+      if (decryptedStr) {
+        try {
+          response.data = JSON.parse(decryptedStr);
+        } catch (e) {
+          console.error("Lỗi khi parse JSON đã giải mã:", e);
+        }
+      }
+    }
+    return response;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
