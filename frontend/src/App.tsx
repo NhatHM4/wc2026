@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { WalletProvider } from './context/WalletContext';
@@ -66,6 +66,7 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [encryptMode, setEncryptMode] = useState(false);
   const [unlocked, setUnlocked] = useState(() => {
     return sessionStorage.getItem('appUnlocked') === 'true';
@@ -94,6 +95,9 @@ const AppContent: React.FC = () => {
     if (code === 'tatcavianhchiemthanyeu') {
       sessionStorage.setItem('appUnlocked', 'true');
       setUnlocked(true);
+      if (!user) {
+        navigate('/hibro');
+      }
       return true;
     }
     return false;
