@@ -37,7 +37,7 @@ public class BetServiceImpl implements BetService {
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy trận đấu"));
 
         // Kiểm tra trận đấu chưa bắt đầu
-        if (!"SCHEDULED".equals(match.getStatus()) || match.getMatchTime().isBefore(LocalDateTime.now())) {
+        if (!"SCHEDULED".equals(match.getStatus()) || match.getMatchTime().isBefore(LocalDateTime.now(java.time.ZoneId.of("UTC")))) {
             throw new IllegalArgumentException("Trận đấu đã bắt đầu hoặc kết thúc, không thể đặt cược");
         }
 

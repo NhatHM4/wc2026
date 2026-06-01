@@ -33,7 +33,7 @@ const Register: React.FC = () => {
       await axios.post('/api/auth/register', { username, password });
       setSuccess('Đăng ký tài khoản thành công! Đang chuyển hướng...');
       setTimeout(() => {
-        navigate('/login');
+        navigate('/hibro');
       }, 1500);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
@@ -179,7 +179,7 @@ const Register: React.FC = () => {
 
         <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
           Đã có tài khoản?{' '}
-          <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>
+          <Link to="/hibro" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>
             Đăng nhập ngay
           </Link>
         </p>

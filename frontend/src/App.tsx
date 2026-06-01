@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { WalletProvider } from './context/WalletContext';
@@ -11,6 +11,14 @@ import Leaderboard from './pages/Leaderboard';
 import Admin from './pages/Admin';
 import Nginx504 from './components/Nginx504';
 
+
+const LogoutRoute: React.FC = () => {
+  const { logout } = useAuth();
+  useEffect(() => {
+    logout();
+  }, [logout]);
+  return <Navigate to="/hibro" replace />;
+};
 
 // Hợp phần bảo vệ các Route yêu cầu xác thực
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -30,7 +38,7 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     );
   }
 
-  return user ? <>{children}</> : <Navigate to="/login" replace />;
+  return user ? <>{children}</> : <Navigate to="/hibro" replace />;
 };
 
 // Hợp phần bảo vệ các Route dành cho khách (chưa đăng nhập hoặc chưa được duyệt)
@@ -72,7 +80,7 @@ const AppContent: React.FC = () => {
     );
   }
 
-  const isPublicRoute = location.pathname === '/login' || location.pathname === '/register';
+  const isPublicRoute = location.pathname === '/hibro' || location.pathname === '/tambiet' || location.pathname === '/register';
 
   if (!user && !isPublicRoute) {
     return <Nginx504 />;
@@ -90,11 +98,13 @@ const AppContent: React.FC = () => {
           <Route path="/" element={<Dashboard />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
 
-          <Route path="/login" element={
+          <Route path="/hibro" element={
             <PublicRoute>
               <Login />
             </PublicRoute>
           } />
+
+          <Route path="/tambiet" element={<LogoutRoute />} />
 
           <Route path="/register" element={
             <PublicRoute>

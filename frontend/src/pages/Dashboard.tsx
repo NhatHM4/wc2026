@@ -389,17 +389,23 @@ const Dashboard: React.FC = () => {
                 </span>
 
                 {match.status === 'SCHEDULED' && (
-                  user ? (
-                    <button
-                      className="btn btn-primary"
-                      style={{ padding: '8px 16px', fontSize: '13px' }}
-                      onClick={() => setSelectedMatch(match)}
-                    >
-                      Dự đoán tỉ số
-                    </button>
+                  new Date() < new Date(match.matchTime.endsWith('Z') || match.matchTime.includes('+') ? match.matchTime : match.matchTime + 'Z') ? (
+                    user ? (
+                      <button
+                        className="btn btn-primary"
+                        style={{ padding: '8px 16px', fontSize: '13px' }}
+                        onClick={() => setSelectedMatch(match)}
+                      >
+                        Dự đoán tỉ số
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: '13px', color: 'var(--primary)', fontWeight: 600 }}>
+                        Đăng nhập để đặt cược
+                      </span>
+                    )
                   ) : (
-                    <span style={{ fontSize: '13px', color: 'var(--primary)', fontWeight: 600 }}>
-                      Đăng nhập để đặt cược
+                    <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>
+                      Đã đóng cổng đặt cược
                     </span>
                   )
                 )}

@@ -13,7 +13,7 @@ const Navbar: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/hibro');
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -155,7 +155,7 @@ const Navbar: React.FC = () => {
               </>
             ) : (
               <div style={{ display: 'flex', gap: '10px' }}>
-                <Link to="/login" onClick={() => setIsOpen(false)} className="btn btn-secondary" style={{ padding: '8px 16px', display: 'flex', gap: '6px', fontSize: '14px' }}>
+                <Link to="/hibro" onClick={() => setIsOpen(false)} className="btn btn-secondary" style={{ padding: '8px 16px', display: 'flex', gap: '6px', fontSize: '14px' }}>
                   <LogIn size={14} />
                   Đăng nhập
                 </Link>
