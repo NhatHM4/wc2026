@@ -28,6 +28,7 @@ services:
       - VIETQR_ACQ_ID=${VIETQR_ACQ_ID}
       - GMAIL_USERNAME=${GMAIL_USERNAME}
       - GMAIL_PASSWORD=${GMAIL_PASSWORD}
+      - JAVA_TOOL_OPTIONS=-Xmx350m -Xms150m
     depends_on:
       - postgres
     restart: always
