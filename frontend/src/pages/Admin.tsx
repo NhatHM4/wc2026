@@ -138,12 +138,34 @@ const Admin: React.FC = () => {
 
   const handleToggleMode = async (newMode: 'REAL' | 'SIMULATION') => {
     if (newMode === systemMode) return;
+    
+    let resetAll = false;
+    if (newMode === 'REAL') {
+      const confirmText = 'Bạn đang chuyển sang chế độ THỰC TẾ. Bạn có muốn RESET toàn bộ số dư ví người dùng, quỹ Jackpot, doanh thu hệ thống và lịch sử giao dịch cược về 0đ để làm sạch dữ liệu không?\n\n(Khuyến nghị Bấm OK)';
+      if (window.confirm(confirmText)) {
+        resetAll = true;
+      }
+    }
+
     setTogglingMode(true);
     try {
       const response = await axios.post('/api/admin/system/mode', { mode: newMode });
       setSystemMode(response.data.systemMode);
-      showSuccess(`Đã chuyển hệ thống sang chế độ ${newMode === 'REAL' ? 'THỰC TẾ' : 'GIẢ LẬP'}!`);
+      
+      let message = `Đã chuyển hệ thống sang chế độ ${newMode === 'REAL' ? 'THỰC TẾ' : 'GIẢ LẬP'}!`;
+      
+      if (resetAll) {
+        try {
+          const resetRes = await axios.post('/api/admin/system/reset-all-data');
+          message += ' ' + resetRes.data.message;
+        } catch (resetErr: any) {
+          showError('Chuyển chế độ thành công nhưng Reset dữ liệu thất bại: ' + (resetErr.response?.data?.message || resetErr.message));
+        }
+      }
+      
+      showSuccess(message);
       fetchMatches();
+      fetchUsers();
     } catch (err: any) {
       showError('Chuyển đổi chế độ thất bại: ' + (err.response?.data?.message || err.message));
     } finally {

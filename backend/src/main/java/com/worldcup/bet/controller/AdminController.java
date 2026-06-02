@@ -6,6 +6,8 @@ import com.worldcup.bet.repository.MatchRepository;
 import com.worldcup.bet.repository.SystemFundRepository;
 import com.worldcup.bet.repository.UserRepository;
 import com.worldcup.bet.repository.WalletRepository;
+import com.worldcup.bet.repository.TransactionRepository;
+import com.worldcup.bet.entity.Transaction;
 import com.worldcup.bet.service.BetService;
 import com.worldcup.bet.service.MatchSyncService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,8 @@ public class AdminController {
     private final SystemFundRepository systemFundRepository;
     private final MatchSyncService matchSyncService;
     private final WalletRepository walletRepository;
+    private final TransactionRepository transactionRepository;
+    private final com.worldcup.bet.repository.BetRepository betRepository;
 
     // Lấy danh sách tất cả người dùng (không trả về mật khẩu)
     @GetMapping("/users")
@@ -270,10 +274,58 @@ public class AdminController {
             com.worldcup.bet.entity.Wallet wallet = walletRepository.findByUserId(userId)
                     .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Không tìm thấy ví của người dùng"));
 
-            wallet.setBalance(BigDecimal.ZERO);
-            walletRepository.save(wallet);
+            BigDecimal currentBalance = wallet.getBalance();
+            if (currentBalance.compareTo(BigDecimal.ZERO) > 0) {
+                wallet.setBalance(BigDecimal.ZERO);
+                walletRepository.save(wallet);
+
+                Transaction transaction = Transaction.builder()
+                        .walletId(wallet.getId())
+                        .amount(currentBalance.negate())
+                        .type("WITHDRAW")
+                        .description("Reset số dư về 0 bởi Admin")
+                        .status("SUCCESS")
+                        .build();
+                transactionRepository.save(transaction);
+            }
 
             return ResponseEntity.ok(Map.of("message", "Đã reset số dư của tài khoản '" + user.getUsername() + "' về 0 VND thành công!"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    // Reset toàn bộ số dư ví, quỹ và giao dịch/cược về 0
+    @PostMapping("/system/reset-all-data")
+    @org.springframework.transaction.annotation.Transactional
+    public ResponseEntity<?> resetAllData() {
+        try {
+            // 1. Reset ví tất cả người dùng về 0
+            List<com.worldcup.bet.entity.Wallet> wallets = walletRepository.findAll();
+            for (com.worldcup.bet.entity.Wallet wallet : wallets) {
+                wallet.setBalance(BigDecimal.ZERO);
+                walletRepository.save(wallet);
+            }
+            
+            // 2. Xóa sạch lịch sử giao dịch và cược
+            transactionRepository.deleteAll();
+            betRepository.deleteAll();
+            
+            // 3. Reset pool các trận đấu về 0 và đặt status chưa cược/chưa kết toán
+            List<com.worldcup.bet.entity.Match> matches = matchRepository.findAll();
+            for (com.worldcup.bet.entity.Match match : matches) {
+                match.setPoolAmount(BigDecimal.ZERO);
+                match.setSettled(false);
+                matchRepository.save(match);
+            }
+
+            // 4. Reset quỹ Jackpot và Phí hệ thống về 0
+            com.worldcup.bet.entity.SystemFund fund = systemFundRepository.findOrCreateSingleFund();
+            fund.setJackpotAmount(BigDecimal.ZERO);
+            fund.setPlatformFeeCollected(BigDecimal.ZERO);
+            systemFundRepository.save(fund);
+
+            return ResponseEntity.ok(Map.of("message", "Đã reset toàn bộ số dư ví, các quỹ cược và lịch sử giao dịch về 0 VND thành công!"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }

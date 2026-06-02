@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useWallet } from '../context/WalletContext';
-import { Trophy, Wallet as WalletIcon, LogOut, LogIn, UserPlus, Award, Calendar, Settings, Menu, X } from 'lucide-react';
+import { Trophy, Wallet as WalletIcon, LogOut, LogIn, UserPlus, Award, Calendar, Settings, Menu, X, Activity } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -10,6 +11,22 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const [systemMode, setSystemMode] = useState<string>('REAL');
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchMode = async () => {
+      try {
+        const response = await axios.get('/api/system/fund');
+        setSystemMode(response.data.systemMode || 'REAL');
+      } catch (e) {
+        console.error("Không thể lấy chế độ hệ thống:", e);
+      }
+    };
+    fetchMode();
+    const timer = setInterval(fetchMode, 15000);
+    return () => clearInterval(timer);
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -106,6 +123,24 @@ const Navbar: React.FC = () => {
                }}>
                  <WalletIcon size={16} />
                  Ví của tôi
+               </Link>
+            )}
+
+            {user && systemMode === 'REAL' && (
+               <Link to="/stats" onClick={() => setIsOpen(false)} style={{
+                 display: 'flex',
+                 alignItems: 'center',
+                 gap: '6px',
+                 textDecoration: 'none',
+                 color: isActive('/stats') ? '#fff' : 'var(--text-muted)',
+                 fontWeight: 600,
+                 fontSize: '15px',
+                 borderBottom: isActive('/stats') ? '2px solid var(--primary)' : '2px solid transparent',
+                 paddingBottom: '4px',
+                 transition: 'all 0.2s'
+               }}>
+                 <Activity size={16} />
+                 Hệ thống
                </Link>
             )}
 

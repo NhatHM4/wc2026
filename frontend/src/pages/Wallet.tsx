@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useWallet } from '../context/WalletContext';
-import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Calendar, History, ShieldAlert, Copy, Check, Loader2 } from 'lucide-react';
+import { Wallet as WalletIcon, ArrowUpRight, Calendar, History, ShieldAlert, Copy, Check, Loader2 } from 'lucide-react';
 
 const Wallet: React.FC = () => {
-  const { balance, transactions, loading, deposit, withdraw, refreshBalance, refreshTransactions } = useWallet();
+  const { balance, transactions, loading, refreshBalance, refreshTransactions } = useWallet();
   const [amount, setAmount] = useState<number | ''>('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -24,6 +24,19 @@ const Wallet: React.FC = () => {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(300);
   const [checkingPayment, setCheckingPayment] = useState<boolean>(false);
+  const [systemMode, setSystemMode] = useState<string>('REAL');
+
+  useEffect(() => {
+    const fetchMode = async () => {
+      try {
+        const response = await axios.get('/api/system/fund');
+        setSystemMode(response.data.systemMode || 'REAL');
+      } catch (e) {
+        console.error("Không thể lấy chế độ hệ thống:", e);
+      }
+    };
+    fetchMode();
+  }, []);
 
   const handleCopy = (text: string, fieldName: string) => {
     navigator.clipboard.writeText(text);
@@ -119,40 +132,33 @@ const Wallet: React.FC = () => {
     setSuccess('');
     setGeneratingQr(true);
     try {
-      const response = await axios.post('/api/wallet/deposit/qr', { amount });
-      setQrDetails(response.data);
+      if (systemMode === 'SIMULATION') {
+        await axios.post('/api/wallet/deposit', { amount });
+        setSuccess(`Đã nạp thành công ${amount.toLocaleString('vi-VN')} VND vào tài khoản!`);
+        setAmount('');
+        await refreshBalance();
+        await refreshTransactions();
+      } else {
+        const response = await axios.post('/api/wallet/deposit/qr', { amount });
+        setQrDetails(response.data);
+      }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Có lỗi xảy ra khi tạo mã QR nạp tiền.');
+      setError(err.response?.data?.message || 'Có lỗi xảy ra khi nạp tiền.');
     } finally {
       setGeneratingQr(false);
     }
   };
 
-  const handleWithdraw = async () => {
-    if (!amount || amount <= 0) {
-      setError('Vui lòng nhập số tiền hợp lệ');
-      return;
-    }
-    if (amount > balance) {
-      setError('Số dư ví không đủ để rút số tiền này');
-      return;
-    }
-    setError('');
-    setSuccess('');
-    try {
-      await withdraw(amount);
-      setSuccess(`Đã rút thành công ${amount.toLocaleString('vi-VN')} VND về ngân hàng giả lập!`);
-      setAmount('');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Có lỗi xảy ra khi rút tiền.');
-    }
-  };
 
-  const getTransactionTypeStyle = (type: string) => {
+
+  const getTransactionTypeStyle = (type: string, description?: string) => {
     switch (type) {
       case 'DEPOSIT':
         return { color: 'var(--primary)', label: 'Nạp tiền' };
       case 'WITHDRAW':
+        if (description && description.includes('Reset')) {
+          return { color: 'var(--error)', label: 'Reset số dư' };
+        }
         return { color: 'var(--error)', label: 'Rút tiền' };
       case 'BET_PLACED':
         return { color: 'var(--text-muted)', label: 'Đặt cược' };
@@ -224,7 +230,9 @@ const Wallet: React.FC = () => {
     <div className="container" style={{ padding: '40px 16px' }}>
       <h1 style={{ fontSize: '32px', fontWeight: 800, marginBottom: '8px' }}>Quản lý ví tiền</h1>
       <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>
-        Theo dõi số dư, nạp rút tiền qua VietQR và lịch sử giao dịch.
+        {systemMode === 'SIMULATION'
+          ? 'Theo dõi số dư, nạp tiền tự do (Giả lập) và lịch sử giao dịch.'
+          : 'Theo dõi số dư, nạp tiền qua VietQR và lịch sử giao dịch.'}
       </p>
 
       {/* Main Grid */}
@@ -346,37 +354,21 @@ const Wallet: React.FC = () => {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <button
-              className="btn btn-secondary"
-              style={{
-                display: 'flex',
-                gap: '8px',
-                padding: '12px',
-                color: 'var(--error)',
-                borderColor: 'rgba(239, 68, 68, 0.2)',
-                background: 'rgba(239, 68, 68, 0.02)',
-                justifyContent: 'center'
-              }}
-              onClick={handleWithdraw}
-              disabled={loading || generatingQr}
-            >
-              <ArrowDownLeft size={16} />
-              Rút tiền
-            </button>
-
+          <div style={{ display: 'block' }}>
             <button
               className="btn btn-primary"
-              style={{ display: 'flex', gap: '8px', padding: '12px', justifyContent: 'center' }}
+              style={{ display: 'flex', gap: '8px', padding: '12px', width: '100%', justifyContent: 'center' }}
               onClick={handleDeposit}
               disabled={loading || generatingQr}
             >
               <ArrowUpRight size={16} />
-              {generatingQr ? 'Đang tạo QR...' : 'Nạp tiền'}
+              {generatingQr ? (systemMode === 'SIMULATION' ? 'Đang nạp tiền...' : 'Đang tạo QR...') : 'Nạp tiền'}
             </button>
           </div>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '16px', textAlign: 'center' }}>
-            * Hệ thống sử dụng VietQR. Số tiền nạp sẽ tự động quét từ email và cộng vào tài khoản của bạn.
+            {systemMode === 'SIMULATION'
+              ? '* Bạn đang ở chế độ giả lập: Tiền sẽ được cộng trực tiếp vào ví ngay lập tức mà không cần quét QR.'
+              : '* Hệ thống sử dụng VietQR. Số tiền nạp sẽ tự động quét từ email và cộng vào tài khoản của bạn.'}
           </p>
         </div>
       </div>
@@ -414,8 +406,25 @@ const Wallet: React.FC = () => {
               </thead>
               <tbody>
                 {transactions.map(tx => {
-                  const txType = getTransactionTypeStyle(tx.type);
+                  const txType = getTransactionTypeStyle(tx.type, tx.description);
                   const isNegative = tx.amount < 0;
+                  
+                  // Style based on status for a premium look
+                  let amountColor = 'var(--primary)';
+                  let amountDecoration = 'none';
+                  let amountPrefix = isNegative ? '' : '+';
+                  
+                  if (tx.status === 'EXPIRED' || tx.status === 'CANCELLED') {
+                    amountColor = 'var(--text-muted)';
+                    amountDecoration = 'line-through';
+                    amountPrefix = ''; // No plus for failed ones
+                  } else if (tx.status === 'PENDING') {
+                    amountColor = 'var(--accent)';
+                    amountPrefix = ''; // No plus sign for pending
+                  } else if (isNegative) {
+                    amountColor = 'var(--error)';
+                  }
+
                   return (
                     <tr key={tx.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', fontSize: '14px' }}>
                       <td style={{ padding: '14px 8px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -440,9 +449,10 @@ const Wallet: React.FC = () => {
                         padding: '14px 8px',
                         textAlign: 'right',
                         fontWeight: 700,
-                        color: isNegative ? 'var(--error)' : 'var(--primary)'
+                        color: amountColor,
+                        textDecoration: amountDecoration
                       }}>
-                        {isNegative ? '' : '+'}{tx.amount.toLocaleString('vi-VN')} VND
+                        {amountPrefix}{tx.amount.toLocaleString('vi-VN')} VND
                       </td>
                     </tr>
                   );

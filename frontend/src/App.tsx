@@ -10,6 +10,7 @@ import Register from './pages/Register';
 import Wallet from './pages/Wallet';
 import Leaderboard from './pages/Leaderboard';
 import Admin from './pages/Admin';
+import StatsDashboard from './pages/StatsDashboard';
 import Nginx504 from './components/Nginx504';
 
 
@@ -162,6 +163,12 @@ const AppContent: React.FC = () => {
           <Route path="/admin" element={
             <PrivateRoute>
               <Admin />
+            </PrivateRoute>
+          } />
+
+          <Route path="/stats" element={
+            <PrivateRoute>
+              <StatsDashboard />
             </PrivateRoute>
           } />
 

@@ -10,4 +10,7 @@ import java.util.UUID;
 @Repository
 public interface WalletRepository extends JpaRepository<Wallet, UUID> {
     Optional<Wallet> findByUserId(UUID userId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT SUM(w.balance) FROM Wallet w")
+    java.math.BigDecimal sumBalance();
 }

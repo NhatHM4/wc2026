@@ -22,4 +22,16 @@ public interface BetRepository extends JpaRepository<Bet, UUID> {
 
     boolean existsByUserIdAndMatchIdAndPredictedHomeScoreAndPredictedAwayScore(
             UUID userId, UUID matchId, Integer predictedHomeScore, Integer predictedAwayScore);
+
+    @Query("SELECT COUNT(b) FROM Bet b JOIN Match m ON b.matchId = m.id WHERE m.apiMatchId > 100004 AND m.apiMatchId < 1000000000")
+    long countBetsOnRealMatches();
+
+    @Query("SELECT SUM(b.betAmount) FROM Bet b JOIN Match m ON b.matchId = m.id WHERE m.apiMatchId > 100004 AND m.apiMatchId < 1000000000")
+    java.math.BigDecimal sumRealBetAmount();
+
+    @Query("SELECT SUM(b.payoutAmount) FROM Bet b JOIN Match m ON b.matchId = m.id WHERE m.apiMatchId > 100004 AND m.apiMatchId < 1000000000 AND b.settled = true AND b.payoutAmount IS NOT NULL")
+    java.math.BigDecimal sumRealPayoutAmount();
+
+    @Query("SELECT COUNT(b) FROM Bet b WHERE b.matchId = :matchId AND b.settled = true AND b.payoutAmount > 0")
+    long countWinningBetsByMatchId(@Param("matchId") UUID matchId);
 }

@@ -12,7 +12,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
@@ -30,17 +30,18 @@ jwt:
 
 # Cấu hình VietQR
 vietqr:
-  client-id: ${VIETQR_CLIENT_ID}
-  api-key: ${VIETQR_API_KEY}
+  client-id: ${VIETQR_CLIENT_ID:4157ce1b-a11e-49e8-a323-37b9d0057135}
+  api-key: ${VIETQR_API_KEY:746178d5-18de-4e19-b041-0844765f25d6}
   base-url: ${VIETQR_BASE_URL:https://api.vietqr.io/v2/generate}
-  account-no: ${VIETQR_ACCOUNT_NO}
-  account-name: ${VIETQR_ACCOUNT_NAME}
-  acq-id: ${VIETQR_ACQ_ID}
+  account-no: ${VIETQR_ACCOUNT_NO:0798128201}
+  account-name: ${VIETQR_ACCOUNT_NAME:Ha Minh Nhat}
+  acq-id: ${VIETQR_ACQ_ID:546034}
 
 gmail:
-  username: ${GMAIL_USERNAME}
-  password: ${GMAIL_PASSWORD}
+  username: ${GMAIL_USERNAME:hanhat123123@gmail.com}
+  password: ${GMAIL_PASSWORD:tarqlmwvymkiqnat}
   host: ${GMAIL_HOST:imap.gmail.com}
   port: ${GMAIL_PORT:993}
   protocol: ${GMAIL_PROTOCOL:imaps}
+
 

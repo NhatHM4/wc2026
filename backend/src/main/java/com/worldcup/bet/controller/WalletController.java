@@ -5,6 +5,8 @@ import com.worldcup.bet.entity.Transaction;
 import com.worldcup.bet.entity.User;
 import com.worldcup.bet.entity.Wallet;
 import com.worldcup.bet.repository.UserRepository;
+import com.worldcup.bet.repository.SystemFundRepository;
+import com.worldcup.bet.entity.SystemFund;
 import com.worldcup.bet.service.WalletService;
 import com.worldcup.bet.service.VietQrService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class WalletController {
     private final WalletService walletService;
     private final UserRepository userRepository;
     private final VietQrService vietQrService;
+    private final SystemFundRepository systemFundRepository;
 
     private User getAuthenticatedUser(Principal principal) {
         if (principal == null) {
@@ -48,6 +51,10 @@ public class WalletController {
     @PostMapping("/deposit")
     public ResponseEntity<?> deposit(Principal principal, @RequestBody TransactionRequest request) {
         try {
+            SystemFund fund = systemFundRepository.findOrCreateSingleFund();
+            if ("REAL".equals(fund.getSystemMode())) {
+                throw new IllegalArgumentException("Không thể nạp tiền trực tiếp trong chế độ thực tế. Vui lòng quét mã QR.");
+            }
             User user = getAuthenticatedUser(principal);
             String desc = request.getDescription() != null ? request.getDescription() : "Nạp tiền giả lập vào tài khoản";
             Wallet wallet = walletService.deposit(user.getId(), request.getAmount(), desc);
