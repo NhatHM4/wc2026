@@ -58,7 +58,7 @@ public class VietQrServiceImpl implements VietQrService {
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-            log.info("Sending request to VietQR API at {} to generate QR code for user {}", baseUrl, username);
+            log.info("Sending request to VietQR API at {} to generate QR code for addInfo {}", baseUrl, addInfo);
             ResponseEntity<Map> response = restTemplate.postForEntity(baseUrl, entity, Map.class);
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
