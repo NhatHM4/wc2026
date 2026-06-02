@@ -75,17 +75,14 @@ public class WalletController {
             }
             User user = getAuthenticatedUser(principal);
             
-            // 1. Tạo nội dung chuyển khoản addInfo
-            String sanitizedUsername = user.getUsername().replaceAll("[^a-zA-Z0-9]", "").toUpperCase();
-            String addInfo = "WC2026 NAP " + sanitizedUsername;
+            // 1. Tạo giao dịch PENDING trước trong DB với description = null để tự động sinh mã unique
+            Transaction pendingTx = walletService.createPendingDeposit(user.getId(), request.getAmount(), null);
+            String addInfo = pendingTx.getDescription();
             
-            // 2. Tạo giao dịch PENDING trước trong DB
-            Transaction pendingTx = walletService.createPendingDeposit(user.getId(), request.getAmount(), addInfo);
+            // 2. Gọi VietQR API sinh mã QR với addInfo là mã unique
+            Map<String, Object> qrDetails = vietQrService.generateQrCode(request.getAmount(), addInfo);
             
-            // 3. Gọi VietQR API sinh mã QR
-            Map<String, Object> qrDetails = vietQrService.generateQrCode(request.getAmount(), user.getUsername());
-            
-            // 4. Bổ sung transactionId vào kết quả trả về
+            // 3. Bổ sung transactionId vào kết quả trả về
             Map<String, Object> response = new java.util.HashMap<>(qrDetails);
             response.put("transactionId", pendingTx.getId());
             

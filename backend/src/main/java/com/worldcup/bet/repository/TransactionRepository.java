@@ -17,6 +17,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     List<Transaction> findByDescriptionAndAmountAndStatusOrderByCreatedAtAsc(String description, BigDecimal amount, String status);
     boolean existsByBankTxId(String bankTxId);
     Optional<Transaction> findByBankTxId(String bankTxId);
+    boolean existsByDescriptionAndStatus(String description, String status);
 
     @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.type = :type AND t.status = :status")
     BigDecimal sumAmountByTypeAndStatus(@Param("type") String type, @Param("status") String status);

@@ -39,11 +39,7 @@ public class VietQrServiceImpl implements VietQrService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Override
-    public Map<String, Object> generateQrCode(BigDecimal amount, String username) {
-        // Tạo nội dung chuyển khoản tự động
-        // Loại bỏ ký tự đặc biệt, viết hoa
-        String sanitizedUsername = username.replaceAll("[^a-zA-Z0-9]", "").toUpperCase();
-        String addInfo = "WC2026 NAP " + sanitizedUsername;
+    public Map<String, Object> generateQrCode(BigDecimal amount, String addInfo) {
 
         try {
             HttpHeaders headers = new HttpHeaders();

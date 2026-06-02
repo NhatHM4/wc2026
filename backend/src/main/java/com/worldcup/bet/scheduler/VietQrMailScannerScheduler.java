@@ -102,12 +102,12 @@ public class VietQrMailScannerScheduler {
                             amount = new BigDecimal(cleanAmt);
                         }
 
-                        // Parse Nội dung chuyển khoản (addInfo)
-                        Pattern addInfoPattern = Pattern.compile("(WC2026\\s*NAP\\s*[A-Za-z0-9]+)", Pattern.CASE_INSENSITIVE);
+                        // Parse Nội dung chuyển khoản (addInfo) là mã unique 6 ký tự viết hoa/số
+                        Pattern addInfoPattern = Pattern.compile("Nội dung giao dịch\\s*([A-Z0-9]{6})\\b", Pattern.CASE_INSENSITIVE);
                         Matcher addInfoMatcher = addInfoPattern.matcher(cleanText);
                         String addInfo = null;
                         if (addInfoMatcher.find()) {
-                            addInfo = addInfoMatcher.group(1).trim().replaceAll("\\s+", " ").toUpperCase();
+                            addInfo = addInfoMatcher.group(1).trim().toUpperCase();
                         }
 
                         log.info("Kết quả parse email CAKE - Mã GD: {}, Số tiền: {}, Nội dung: {}", bankTxId, amount, addInfo);

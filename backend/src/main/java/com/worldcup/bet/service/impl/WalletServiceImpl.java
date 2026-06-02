@@ -105,11 +105,16 @@ public class WalletServiceImpl implements WalletService {
         }
         Wallet wallet = getWalletByUserId(userId);
 
+        String finalDescription = description;
+        if (finalDescription == null) {
+            finalDescription = generateUniqueCode();
+        }
+
         Transaction transaction = Transaction.builder()
                 .walletId(wallet.getId())
                 .amount(amount)
                 .type("DEPOSIT")
-                .description(description != null ? description : "Nạp tiền qua VietQR")
+                .description(finalDescription)
                 .status("PENDING")
                 .build();
 
@@ -138,30 +143,6 @@ public class WalletServiceImpl implements WalletService {
             walletRepository.save(wallet);
             return true;
         }
-
-        if (addInfo != null && addInfo.startsWith("WC2026 NAP ")) {
-            String username = addInfo.substring("WC2026 NAP ".length()).trim();
-            Optional<com.worldcup.bet.entity.User> userOpt = userRepository.findByUsernameIgnoreCase(username);
-            if (userOpt.isPresent()) {
-                com.worldcup.bet.entity.User user = userOpt.get();
-                Wallet wallet = walletRepository.findByUserId(user.getId())
-                        .orElseGet(() -> createWallet(user.getId()));
-                
-                wallet.setBalance(wallet.getBalance().add(amount));
-                walletRepository.save(wallet);
-
-                Transaction tx = Transaction.builder()
-                        .walletId(wallet.getId())
-                        .amount(amount)
-                        .type("DEPOSIT")
-                        .description(addInfo + " (Tự động cộng)")
-                        .status("SUCCESS")
-                        .bankTxId(bankTxId)
-                        .build();
-                transactionRepository.save(tx);
-                return true;
-            }
-        }
         return false;
     }
 
@@ -179,5 +160,20 @@ public class WalletServiceImpl implements WalletService {
     public Transaction getTransactionById(UUID transactionId) {
         return transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy giao dịch"));
+    }
+
+    private String generateUniqueCode() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        while (true) {
+            StringBuilder sb = new StringBuilder(6);
+            for (int i = 0; i < 6; i++) {
+                sb.append(chars.charAt(random.nextInt(chars.length())));
+            }
+            String code = sb.toString();
+            if (!transactionRepository.existsByDescriptionAndStatus(code, "PENDING")) {
+                return code;
+            }
+        }
     }
 }
