@@ -21,6 +21,13 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/betdb
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
+      - VIETQR_CLIENT_ID=${VIETQR_CLIENT_ID}
+      - VIETQR_API_KEY=${VIETQR_API_KEY}
+      - VIETQR_ACCOUNT_NO=${VIETQR_ACCOUNT_NO}
+      - VIETQR_ACCOUNT_NAME=${VIETQR_ACCOUNT_NAME}
+      - VIETQR_ACQ_ID=${VIETQR_ACQ_ID}
+      - GMAIL_USERNAME=${GMAIL_USERNAME}
+      - GMAIL_PASSWORD=${GMAIL_PASSWORD}
     depends_on:
       - postgres
     restart: always

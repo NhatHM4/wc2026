@@ -8,6 +8,8 @@ interface Transaction {
   amount: number;
   type: string;
   description: string;
+  status: string;
+  bankTxId?: string;
   createdAt: string;
 }
 
@@ -17,7 +19,7 @@ interface WalletContextType {
   loading: boolean;
   refreshBalance: () => Promise<number>;
   refreshTransactions: () => Promise<void>;
-  deposit: (amount: number) => Promise<void>;
+  deposit: (amount: number, description?: string) => Promise<void>;
   withdraw: (amount: number) => Promise<void>;
 }
 
@@ -52,10 +54,10 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
-  const deposit = async (amount: number) => {
+  const deposit = async (amount: number, description?: string) => {
     setLoading(true);
     try {
-      const response = await axios.post('/api/wallet/deposit', { amount });
+      const response = await axios.post('/api/wallet/deposit', { amount, description });
       setBalance(response.data.balance);
       await refreshTransactions();
     } finally {

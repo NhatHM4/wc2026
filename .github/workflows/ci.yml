@@ -114,13 +114,32 @@ jobs:
 
       - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@master
+        env:
+          VIETQR_CLIENT_ID: ${{ secrets.VIETQR_CLIENT_ID }}
+          VIETQR_API_KEY: ${{ secrets.VIETQR_API_KEY }}
+          VIETQR_ACCOUNT_NO: ${{ secrets.VIETQR_ACCOUNT_NO }}
+          VIETQR_ACCOUNT_NAME: ${{ secrets.VIETQR_ACCOUNT_NAME }}
+          VIETQR_ACQ_ID: ${{ secrets.VIETQR_ACQ_ID }}
+          GMAIL_USERNAME: ${{ secrets.GMAIL_USERNAME }}
+          GMAIL_PASSWORD: ${{ secrets.GMAIL_PASSWORD }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: VIETQR_CLIENT_ID,VIETQR_API_KEY,VIETQR_ACCOUNT_NO,VIETQR_ACCOUNT_NAME,VIETQR_ACQ_ID,GMAIL_USERNAME,GMAIL_PASSWORD
           script: |
             # Rename prod compose to standard docker-compose name
             mv ~/docker-compose.prod.yml ~/docker-compose.yml || true
+            
+            # Write environment variables to .env file for docker compose
+            echo "VIETQR_CLIENT_ID=$VIETQR_CLIENT_ID" > ~/env_temp
+            echo "VIETQR_API_KEY=$VIETQR_API_KEY" >> ~/env_temp
+            echo "VIETQR_ACCOUNT_NO=$VIETQR_ACCOUNT_NO" >> ~/env_temp
+            echo "VIETQR_ACCOUNT_NAME=$VIETQR_ACCOUNT_NAME" >> ~/env_temp
+            echo "VIETQR_ACQ_ID=$VIETQR_ACQ_ID" >> ~/env_temp
+            echo "GMAIL_USERNAME=$GMAIL_USERNAME" >> ~/env_temp
+            echo "GMAIL_PASSWORD=$GMAIL_PASSWORD" >> ~/env_temp
+            mv ~/env_temp ~/.env
             
             # Pull latest images from Docker Hub
             docker compose pull

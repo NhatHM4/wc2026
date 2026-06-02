@@ -9,4 +9,5 @@ import java.math.BigDecimal;
 @Setter
 public class TransactionRequest {
     private BigDecimal amount;
+    private String description;
 }

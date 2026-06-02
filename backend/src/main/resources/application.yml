@@ -12,7 +12,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     show-sql: true
     properties:
       hibernate:
@@ -27,3 +27,20 @@ football-api:
 jwt:
   secret: "3c968a3b576825595679261a8684711867156942065842831089201948723049" # Base64 hoặc chuỗi bí mật tối thiểu 256 bits
   expiration-ms: 864000000 # 10 ngày
+
+# Cấu hình VietQR
+vietqr:
+  client-id: ${VIETQR_CLIENT_ID}
+  api-key: ${VIETQR_API_KEY}
+  base-url: ${VIETQR_BASE_URL:https://api.vietqr.io/v2/generate}
+  account-no: ${VIETQR_ACCOUNT_NO}
+  account-name: ${VIETQR_ACCOUNT_NAME}
+  acq-id: ${VIETQR_ACQ_ID}
+
+gmail:
+  username: ${GMAIL_USERNAME}
+  password: ${GMAIL_PASSWORD}
+  host: ${GMAIL_HOST:imap.gmail.com}
+  port: ${GMAIL_PORT:993}
+  protocol: ${GMAIL_PROTOCOL:imaps}
+

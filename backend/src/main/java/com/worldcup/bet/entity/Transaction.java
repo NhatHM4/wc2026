@@ -28,6 +28,13 @@ public class Transaction extends BaseEntity {
     @Column
     private String description;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private String status = "SUCCESS"; // SUCCESS, PENDING, EXPIRED, CANCELLED
+
+    @Column(name = "bank_tx_id", unique = true)
+    private String bankTxId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

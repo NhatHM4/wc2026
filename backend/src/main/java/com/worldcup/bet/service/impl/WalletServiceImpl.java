@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -21,6 +22,7 @@ public class WalletServiceImpl implements WalletService {
 
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
+    private final com.worldcup.bet.repository.UserRepository userRepository;
 
     @Override
     @Transactional
@@ -93,5 +95,89 @@ public class WalletServiceImpl implements WalletService {
         return walletRepository.findByUserId(userId)
                 .map(wallet -> transactionRepository.findByWalletIdOrderByCreatedAtDesc(wallet.getId()))
                 .orElse(Collections.emptyList());
+    }
+
+    @Override
+    @Transactional
+    public Transaction createPendingDeposit(UUID userId, BigDecimal amount, String description) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Số tiền nạp phải lớn hơn 0");
+        }
+        Wallet wallet = getWalletByUserId(userId);
+
+        Transaction transaction = Transaction.builder()
+                .walletId(wallet.getId())
+                .amount(amount)
+                .type("DEPOSIT")
+                .description(description != null ? description : "Nạp tiền qua VietQR")
+                .status("PENDING")
+                .build();
+
+        return transactionRepository.save(transaction);
+    }
+
+    @Override
+    @Transactional
+    public boolean completePendingDeposit(String addInfo, BigDecimal amount, String bankTxId) {
+        if (transactionRepository.existsByBankTxId(bankTxId)) {
+            return false;
+        }
+
+        Optional<Transaction> pendingTxOpt = transactionRepository
+                .findByDescriptionAndAmountAndStatus(addInfo, amount, "PENDING");
+
+        if (pendingTxOpt.isPresent()) {
+            Transaction tx = pendingTxOpt.get();
+            tx.setStatus("SUCCESS");
+            tx.setBankTxId(bankTxId);
+            transactionRepository.save(tx);
+
+            Wallet wallet = walletRepository.findById(tx.getWalletId())
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy ví"));
+            wallet.setBalance(wallet.getBalance().add(amount));
+            walletRepository.save(wallet);
+            return true;
+        }
+
+        if (addInfo != null && addInfo.startsWith("WC2026 NAP ")) {
+            String username = addInfo.substring("WC2026 NAP ".length()).trim();
+            Optional<com.worldcup.bet.entity.User> userOpt = userRepository.findByUsernameIgnoreCase(username);
+            if (userOpt.isPresent()) {
+                com.worldcup.bet.entity.User user = userOpt.get();
+                Wallet wallet = walletRepository.findByUserId(user.getId())
+                        .orElseGet(() -> createWallet(user.getId()));
+                
+                wallet.setBalance(wallet.getBalance().add(amount));
+                walletRepository.save(wallet);
+
+                Transaction tx = Transaction.builder()
+                        .walletId(wallet.getId())
+                        .amount(amount)
+                        .type("DEPOSIT")
+                        .description(addInfo + " (Tự động cộng)")
+                        .status("SUCCESS")
+                        .bankTxId(bankTxId)
+                        .build();
+                transactionRepository.save(tx);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    @Transactional
+    public void updateTransactionStatus(UUID transactionId, String status) {
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy giao dịch"));
+        transaction.setStatus(status);
+        transactionRepository.save(transaction);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Transaction getTransactionById(UUID transactionId) {
+        return transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy giao dịch"));
     }
 }
