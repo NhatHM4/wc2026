@@ -1,5 +1,7 @@
 package com.worldcup.bet.config;
 
+import com.worldcup.bet.entity.User;
+import com.worldcup.bet.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +24,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider tokenProvider;
     private final UserDetailsService userDetailsService;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -30,8 +33,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = getJwtFromRequest(request);
 
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
-                boolean approved = tokenProvider.getApprovedFromJwt(jwt);
                 String username = tokenProvider.getUsernameFromJwt(jwt);
+                boolean approved = userRepository.findByUsername(username)
+                        .map(User::isApproved)
+                        .orElse(false);
 
                 if (!approved) {
                     String uri = request.getRequestURI();
