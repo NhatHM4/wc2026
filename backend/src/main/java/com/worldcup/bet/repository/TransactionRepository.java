@@ -14,7 +14,7 @@ import java.util.UUID;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, UUID> {
     List<Transaction> findByWalletIdOrderByCreatedAtDesc(UUID walletId);
-    Optional<Transaction> findByDescriptionAndAmountAndStatus(String description, BigDecimal amount, String status);
+    List<Transaction> findByDescriptionAndAmountAndStatusOrderByCreatedAtAsc(String description, BigDecimal amount, String status);
     boolean existsByBankTxId(String bankTxId);
     Optional<Transaction> findByBankTxId(String bankTxId);
 

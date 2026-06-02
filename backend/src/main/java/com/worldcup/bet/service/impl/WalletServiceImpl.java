@@ -123,11 +123,11 @@ public class WalletServiceImpl implements WalletService {
             return false;
         }
 
-        Optional<Transaction> pendingTxOpt = transactionRepository
-                .findByDescriptionAndAmountAndStatus(addInfo, amount, "PENDING");
+        List<Transaction> pendingTxs = transactionRepository
+                .findByDescriptionAndAmountAndStatusOrderByCreatedAtAsc(addInfo, amount, "PENDING");
 
-        if (pendingTxOpt.isPresent()) {
-            Transaction tx = pendingTxOpt.get();
+        if (!pendingTxs.isEmpty()) {
+            Transaction tx = pendingTxs.get(0);
             tx.setStatus("SUCCESS");
             tx.setBankTxId(bankTxId);
             transactionRepository.save(tx);
