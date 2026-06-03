@@ -93,7 +93,7 @@ const AppContent: React.FC = () => {
   }, []);
 
   const handleUnlock = (code: string): boolean => {
-    if (code === 'tatcavianhchiemthanyeu') {
+    if (code === 'iloveyou') {
       sessionStorage.setItem('appUnlocked', 'true');
       setUnlocked(true);
       if (!user) {

@@ -1,6 +1,6 @@
 import CryptoJS from 'crypto-js';
 
-const PASSWORD = "tatcavianhchiemthanyeu";
+const PASSWORD = "iloveyou";
 
 export const decryptData = (encryptedBase64: string): string | null => {
   try {
