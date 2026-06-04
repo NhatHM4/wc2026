@@ -24,4 +24,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
 
     @Query("SELECT t FROM Transaction t WHERE t.type = 'WITHDRAW' AND t.description LIKE '%Reset%' ORDER BY t.createdAt DESC")
     List<Transaction> findAdminResets();
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    @Query("UPDATE Transaction t SET t.type = 'BET_PLACED' WHERE t.type = 'WITHDRAW' AND t.description LIKE 'Đặt cược%'")
+    int migrateLegacyBetTransactionsToBetPlaced();
 }

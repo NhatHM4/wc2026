@@ -68,6 +68,12 @@ public class WalletServiceImpl implements WalletService {
     @Override
     @Transactional
     public Wallet withdraw(UUID userId, BigDecimal amount, String description) {
+        return withdraw(userId, amount, description, "WITHDRAW");
+    }
+
+    @Override
+    @Transactional
+    public Wallet withdraw(UUID userId, BigDecimal amount, String description, String type) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Số tiền rút phải lớn hơn 0");
         }
@@ -81,7 +87,7 @@ public class WalletServiceImpl implements WalletService {
         Transaction transaction = Transaction.builder()
                 .walletId(wallet.getId())
                 .amount(amount.negate())
-                .type("WITHDRAW")
+                .type(type != null ? type : "WITHDRAW")
                 .description(description != null ? description : "Rút tiền khỏi tài khoản")
                 .build();
         transactionRepository.save(transaction);

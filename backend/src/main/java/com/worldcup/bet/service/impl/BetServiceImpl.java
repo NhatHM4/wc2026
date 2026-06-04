@@ -55,7 +55,7 @@ public class BetServiceImpl implements BetService {
                 request.getPredictedHomeScore(), request.getPredictedAwayScore(),
                 match.getHomeTeam(), match.getAwayTeam());
         
-        walletService.withdraw(userId, FIXED_BET_AMOUNT, description);
+        walletService.withdraw(userId, FIXED_BET_AMOUNT, description, "BET_PLACED");
 
         // Tạo vé cược mới
         Bet bet = Bet.builder()

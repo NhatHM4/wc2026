@@ -2,6 +2,7 @@ package com.worldcup.bet.config;
 
 import com.worldcup.bet.entity.User;
 import com.worldcup.bet.repository.SystemFundRepository;
+import com.worldcup.bet.repository.TransactionRepository;
 import com.worldcup.bet.repository.UserRepository;
 import com.worldcup.bet.service.WalletService;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +20,20 @@ public class DataInitializer implements CommandLineRunner {
     private final WalletService walletService;
     private final PasswordEncoder passwordEncoder;
     private final SystemFundRepository systemFundRepository;
+    private final TransactionRepository transactionRepository;
 
     @Override
     public void run(String... args) throws Exception {
+        // Di chuyển các giao dịch đặt cược lịch sử từ WITHDRAW sang BET_PLACED để khớp số liệu thống kê
+        try {
+            int migratedCount = transactionRepository.migrateLegacyBetTransactionsToBetPlaced();
+            if (migratedCount > 0) {
+                log.info("Successfully migrated {} legacy bet transactions from WITHDRAW to BET_PLACED", migratedCount);
+            }
+        } catch (Exception e) {
+            log.error("Failed to migrate legacy bet transactions: ", e);
+        }
+
         // Khởi tạo Quỹ hệ thống (SystemFund) duy nhất nếu chưa tồn tại
         systemFundRepository.findOrCreateSingleFund();
 

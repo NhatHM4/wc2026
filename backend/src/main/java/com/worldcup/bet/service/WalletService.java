@@ -12,6 +12,7 @@ public interface WalletService {
     Wallet getWalletByUserId(UUID userId);
     Wallet deposit(UUID userId, BigDecimal amount, String description);
     Wallet withdraw(UUID userId, BigDecimal amount, String description);
+    Wallet withdraw(UUID userId, BigDecimal amount, String description, String type);
     List<Transaction> getTransactions(UUID userId);
     Transaction createPendingDeposit(UUID userId, BigDecimal amount, String description);
     boolean completePendingDeposit(String addInfo, BigDecimal amount, String bankTxId);
