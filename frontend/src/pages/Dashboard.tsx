@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useWallet } from '../context/WalletContext';
 import BetModal from '../components/BetModal';
 import { Trophy, RefreshCw, AlertCircle, Coins, CheckCircle, Clock } from 'lucide-react';
+import { formatDonut } from '../utils/currency';
 
 interface Match {
   id: string;
@@ -245,7 +246,7 @@ const Dashboard: React.FC = () => {
               Jackpot
             </span>
             <h2 className="jackpot-amount">
-              {systemFund.jackpotAmount.toLocaleString('vi-VN')} <span style={{ color: 'var(--accent)', fontSize: '24px' }}>VND</span>
+              {formatDonut(systemFund.jackpotAmount)}
             </h2>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
               * Quỹ này được dồn từ các trận đấu không có người thắng cược tỉ số!
@@ -259,7 +260,7 @@ const Dashboard: React.FC = () => {
             Quỹ nhậu đã trích (10%) từ mỗi trận:
           </div>
           <div style={{ fontSize: '24px', fontWeight: 700, color: '#fff', marginTop: '6px' }}>
-            {systemFund.platformFeeCollected.toLocaleString('vi-VN')} VND
+            {formatDonut(systemFund.platformFeeCollected)}
           </div>
         </div>
       </div>
@@ -382,7 +383,7 @@ const Dashboard: React.FC = () => {
                   style={{ fontSize: '13px', color: 'var(--text-muted)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', userSelect: 'none' }}
                   title="Click để xem chi tiết người đặt cược"
                 >
-                  Tổng cược: <strong style={{ color: '#fff' }}>{match.poolAmount.toLocaleString('vi-VN')}đ</strong>
+                  Tổng cược: <strong style={{ color: '#fff' }}>{formatDonut(match.poolAmount)}</strong>
                   <span style={{ color: 'var(--primary)', fontSize: '11px', display: 'inline-flex', alignItems: 'center' }}>
                     {expandedMatchId === match.id ? '▲ Thu gọn' : '▼ Chi tiết'}
                   </span>
@@ -506,9 +507,9 @@ const Dashboard: React.FC = () => {
                       <td style={{ padding: '14px 8px', textAlign: 'center', fontWeight: 700, color: 'var(--accent)' }}>
                         {bet.predictedHomeScore} - {bet.predictedAwayScore}
                       </td>
-                      <td style={{ padding: '14px 8px', textAlign: 'right' }}>{bet.betAmount.toLocaleString('vi-VN')} VND</td>
+                      <td style={{ padding: '14px 8px', textAlign: 'right' }}>{formatDonut(bet.betAmount)}</td>
                       <td style={{ padding: '14px 8px', textAlign: 'right', fontWeight: 700, color: 'var(--primary)' }}>
-                        {bet.settled && bet.payoutAmount > 0 ? `+${bet.payoutAmount.toLocaleString('vi-VN')} VND` : '-'}
+                        {bet.settled && bet.payoutAmount > 0 ? `+${formatDonut(bet.payoutAmount)}` : '-'}
                       </td>
                       <td style={{ padding: '14px 8px', textAlign: 'center' }}>
                         {bet.settled ? (

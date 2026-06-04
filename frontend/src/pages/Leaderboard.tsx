@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Award, Trophy, User } from 'lucide-react';
+import { formatDonut } from '../utils/currency';
 
 interface LeaderboardEntry {
   rank: number;
@@ -90,7 +91,7 @@ const Leaderboard: React.FC = () => {
     } else {
       return (
         <div style={{ fontSize: '13px', color: 'var(--accent)', fontWeight: 600, marginTop: '4px' }}>
-          Ăn cược: +{entry.totalWinAmount.toLocaleString('vi-VN')} đ
+          Ăn cược: +{formatDonut(entry.totalWinAmount)}
         </div>
       );
     }
@@ -123,9 +124,8 @@ const Leaderboard: React.FC = () => {
       return (
         <div style={{ textAlign: 'right' }}>
           <span style={{ fontWeight: 800, fontSize: '16px', color: 'var(--accent)' }}>
-            {entry.totalWinAmount.toLocaleString('vi-VN')}
+            {formatDonut(entry.totalWinAmount)}
           </span>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '4px' }}>đ</span>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
             Trúng {entry.winBets} trận
           </div>

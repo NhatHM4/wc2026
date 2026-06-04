@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useWallet } from '../context/WalletContext';
 import { Wallet as WalletIcon, ArrowUpRight, Calendar, History, ShieldAlert, Copy, Check, Loader2 } from 'lucide-react';
+import { formatDonut } from '../utils/currency';
 
 const Wallet: React.FC = () => {
   const { balance, transactions, loading, refreshBalance, refreshTransactions } = useWallet();
   const [amount, setAmount] = useState<number | ''>('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const QUICK_AMOUNTS = [20000, 50000, 100000, 200000, 500000];
+  const QUICK_AMOUNTS = [20, 50, 100, 200, 500]; // in Donuts
 
   const [generatingQr, setGeneratingQr] = useState(false);
   const [qrDetails, setQrDetails] = useState<{
@@ -78,7 +79,7 @@ const Wallet: React.FC = () => {
           clearInterval(countdownTimer);
           await refreshBalance();
           await refreshTransactions();
-          setSuccess(`Đã nạp thành công ${qrDetails.amount.toLocaleString('vi-VN')} VND vào tài khoản!`);
+          setSuccess(`Đã nạp thành công ${formatDonut(qrDetails.amount)} vào tài khoản!`);
           setQrDetails(null);
           setAmount('');
         } else if (status === 'EXPIRED' || status === 'CANCELLED') {
@@ -131,15 +132,16 @@ const Wallet: React.FC = () => {
     setError('');
     setSuccess('');
     setGeneratingQr(true);
+    const amountInVnd = amount * 1000;
     try {
       if (systemMode === 'SIMULATION') {
-        await axios.post('/api/wallet/deposit', { amount });
-        setSuccess(`Đã nạp thành công ${amount.toLocaleString('vi-VN')} VND vào tài khoản!`);
+        await axios.post('/api/wallet/deposit', { amount: amountInVnd });
+        setSuccess(`Đã nạp thành công ${formatDonut(amountInVnd)} vào tài khoản!`);
         setAmount('');
         await refreshBalance();
         await refreshTransactions();
       } else {
-        const response = await axios.post('/api/wallet/deposit/qr', { amount });
+        const response = await axios.post('/api/wallet/deposit/qr', { amount: amountInVnd });
         setQrDetails(response.data);
       }
     } catch (err: any) {
@@ -267,7 +269,7 @@ const Wallet: React.FC = () => {
                 Số Dư Ví Hiện Tại
               </span>
               <h2 style={{ fontSize: '30px', fontWeight: 800, color: '#fff', marginTop: '4px', wordBreak: 'break-all' }}>
-                {balance.toLocaleString('vi-VN')} <span style={{ fontSize: '18px', color: 'var(--primary)' }}>VND</span>
+                {formatDonut(balance)}
               </h2>
             </div>
           </div>
@@ -295,7 +297,7 @@ const Wallet: React.FC = () => {
                     setSuccess('');
                   }}
                 >
-                  {val.toLocaleString('vi-VN')} VND
+                  {val} 🍩
                 </button>
               ))}
             </div>
@@ -339,11 +341,11 @@ const Wallet: React.FC = () => {
           )}
 
           <div className="form-group" style={{ marginBottom: '24px' }}>
-            <label className="form-label">Nhập số tiền giao dịch (VND)</label>
+            <label className="form-label">Nhập số tiền giao dịch (🍩)</label>
             <input
               type="number"
               className="form-input"
-              placeholder="Nhập số tiền..."
+              placeholder="Nhập số lượng 🍩..."
               value={amount}
               onChange={(e) => {
                 setAmount(e.target.value === '' ? '' : parseInt(e.target.value));
@@ -452,7 +454,7 @@ const Wallet: React.FC = () => {
                         color: amountColor,
                         textDecoration: amountDecoration
                       }}>
-                        {amountPrefix}{tx.amount.toLocaleString('vi-VN')} VND
+                        {amountPrefix}{formatDonut(Math.abs(tx.amount))}
                       </td>
                     </tr>
                   );
@@ -566,7 +568,7 @@ const Wallet: React.FC = () => {
                 <span style={{ color: 'var(--text-muted)' }}>Số tiền</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '16px' }}>
-                    {qrDetails.amount.toLocaleString('vi-VN')} VND
+                    {formatDonut(qrDetails.amount)}
                   </span>
                   <button
                     onClick={() => handleCopy(qrDetails.amount.toString(), 'amount')}

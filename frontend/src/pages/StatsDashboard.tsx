@@ -5,6 +5,7 @@ import {
   Users, ShieldCheck, Activity,
   ArrowUpRight, ArrowDownLeft, Landmark, RefreshCw, AlertCircle, Sparkles, BookOpen, Calendar
 } from 'lucide-react';
+import { formatDonut } from '../utils/currency';
 
 interface SystemStats {
   totalUsers: number;
@@ -170,7 +171,7 @@ const StatsDashboard: React.FC = () => {
           <div>
             <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Tổng tiền nạp</span>
             <h3 style={{ fontSize: '20px', fontWeight: 800, marginTop: '4px' }}>
-              +{stats.totalDepositsAmount.toLocaleString('vi-VN')}đ
+              +{formatDonut(stats.totalDepositsAmount)}
             </h3>
           </div>
         </div>
@@ -183,7 +184,7 @@ const StatsDashboard: React.FC = () => {
           <div>
             <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Tiền rút / Admin Reset</span>
             <h3 style={{ fontSize: '20px', fontWeight: 800, marginTop: '4px' }}>
-              -{stats.totalWithdrawalsAmount.toLocaleString('vi-VN')}đ
+              -{formatDonut(stats.totalWithdrawalsAmount)}
             </h3>
           </div>
         </div>
@@ -253,10 +254,10 @@ const StatsDashboard: React.FC = () => {
           <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', textAlign: 'center' }}>
             <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 500 }}>Nguồn tiền ròng (Inflow)</span>
             <div style={{ fontSize: '26px', fontWeight: 800, color: '#fff', margin: '8px 0' }}>
-              {netDeposits.toLocaleString('vi-VN')}đ
+              {formatDonut(netDeposits)}
             </div>
             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-              Tổng Nạp ({stats.totalDepositsAmount.toLocaleString('vi-VN')}đ) - Tổng Rút/Reset ({stats.totalWithdrawalsAmount.toLocaleString('vi-VN')}đ)
+              Tổng Nạp ({formatDonut(stats.totalDepositsAmount)}) - Tổng Rút/Reset ({formatDonut(stats.totalWithdrawalsAmount)})
             </span>
           </div>
 
@@ -267,10 +268,10 @@ const StatsDashboard: React.FC = () => {
           <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', textAlign: 'center' }}>
             <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 500 }}>Tổng tài sản hiện tại (Assets)</span>
             <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--primary)', margin: '8px 0' }}>
-              {netAssets.toLocaleString('vi-VN')}đ
+              {formatDonut(netAssets)}
             </div>
             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-              Ví ({stats.totalWalletsBalance.toLocaleString('vi-VN')}đ) + Active Pools ({stats.totalActiveMatchPools.toLocaleString('vi-VN')}đ) + Jackpot + Quỹ nhậu
+              Ví ({formatDonut(stats.totalWalletsBalance)}) + Active Pools ({formatDonut(stats.totalActiveMatchPools)}) + Jackpot + Quỹ nhậu
             </span>
           </div>
         </div>
@@ -302,7 +303,7 @@ const StatsDashboard: React.FC = () => {
                 <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-main)' }}>Số dư ví thành viên</span>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <strong style={{ fontSize: '15px' }}>{stats.totalWalletsBalance.toLocaleString('vi-VN')}đ</strong>
+                <strong style={{ fontSize: '15px' }}>{formatDonut(stats.totalWalletsBalance)}</strong>
                 <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '8px' }}>({walletPct.toFixed(1)}%)</span>
               </div>
             </div>
@@ -314,7 +315,7 @@ const StatsDashboard: React.FC = () => {
                 <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-main)' }}>Quỹ cược trận chưa quyết toán</span>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <strong style={{ fontSize: '15px' }}>{stats.totalActiveMatchPools.toLocaleString('vi-VN')}đ</strong>
+                <strong style={{ fontSize: '15px' }}>{formatDonut(stats.totalActiveMatchPools)}</strong>
                 <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '8px' }}>({activePoolPct.toFixed(1)}%)</span>
               </div>
             </div>
@@ -326,7 +327,7 @@ const StatsDashboard: React.FC = () => {
                 <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-main)' }}>Quỹ Jackpot tích lũy</span>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <strong style={{ fontSize: '15px' }}>{stats.jackpotAmount.toLocaleString('vi-VN')}đ</strong>
+                <strong style={{ fontSize: '15px' }}>{formatDonut(stats.jackpotAmount)}</strong>
                 <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '8px' }}>({jackpotPct.toFixed(1)}%)</span>
               </div>
             </div>
@@ -338,7 +339,7 @@ const StatsDashboard: React.FC = () => {
                 <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-main)' }}>Doanh thu hệ thống (Quỹ nhậu 10%)</span>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <strong style={{ fontSize: '15px' }}>{stats.platformFeeCollected.toLocaleString('vi-VN')}đ</strong>
+                <strong style={{ fontSize: '15px' }}>{formatDonut(stats.platformFeeCollected)}</strong>
                 <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '8px' }}>({feePct.toFixed(1)}%)</span>
               </div>
             </div>
@@ -363,8 +364,8 @@ const StatsDashboard: React.FC = () => {
             <div style={{ display: 'flex', gap: '12px' }}>
               <div style={{ fontWeight: 800, color: 'var(--primary)' }}>2.</div>
               <div>
-                <strong style={{ color: '#fff' }}>Đặt cược:</strong> Khi dự đoán tỉ số, người chơi bị trừ cố định <strong style={{ color: 'var(--accent)' }}>10.000 VND</strong> từ ví. Số tiền này chuyển trực tiếp vào Quỹ cược trận đấu (Match Pool).
-              </div>
+              <strong style={{ color: '#fff' }}>Đặt cược:</strong> Khi dự đoán tỉ số, người chơi bị trừ cố định <strong style={{ color: 'var(--accent)' }}>10 🍩</strong> từ ví. Số tiền này chuyển trực tiếp vào Quỹ cược trận đấu (Match Pool).
+            </div>
             </div>
 
             <div style={{ display: 'flex', gap: '12px' }}>
@@ -464,13 +465,13 @@ const StatsDashboard: React.FC = () => {
                         {log.homeScore} - {log.awayScore}
                       </td>
                       <td style={{ padding: '12px 8px', textAlign: 'right', fontWeight: 600 }}>
-                        {log.poolAmount.toLocaleString('vi-VN')}đ
+                        {formatDonut(log.poolAmount)}
                       </td>
                       <td style={{ padding: '12px 8px', textAlign: 'right', color: 'var(--error)', fontWeight: 600 }}>
-                        {log.platformFee.toLocaleString('vi-VN')}đ
+                        {formatDonut(log.platformFee)}
                       </td>
                       <td style={{ padding: '12px 8px', textAlign: 'right', color: 'var(--primary)', fontWeight: 600 }}>
-                        {log.netPool.toLocaleString('vi-VN')}đ
+                        {formatDonut(log.netPool)}
                       </td>
                       <td style={{ padding: '12px 8px', textAlign: 'center' }}>
                         {log.rolledToJackpot ? (
@@ -519,7 +520,7 @@ const StatsDashboard: React.FC = () => {
                         {log.description}
                       </td>
                       <td style={{ padding: '12px 8px', textAlign: 'right', fontWeight: 700, color: 'var(--error)' }}>
-                        -{log.amount.toLocaleString('vi-VN')} VND
+                        -{formatDonut(log.amount)}
                       </td>
                     </tr>
                   ))}

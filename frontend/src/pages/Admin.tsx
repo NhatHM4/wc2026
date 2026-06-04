@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { ShieldAlert, Users, Calendar, Key, CheckCircle, AlertCircle, RefreshCw, X, Play, Coins } from 'lucide-react';
+import { formatDonut } from '../utils/currency';
 
 interface Match {
   id: string;
@@ -141,7 +142,7 @@ const Admin: React.FC = () => {
     
     let resetAll = false;
     if (newMode === 'REAL') {
-      const confirmText = 'Bạn đang chuyển sang chế độ THỰC TẾ. Bạn có muốn RESET toàn bộ số dư ví người dùng, quỹ Jackpot, doanh thu hệ thống và lịch sử giao dịch cược về 0đ để làm sạch dữ liệu không?\n\n(Khuyến nghị Bấm OK)';
+      const confirmText = 'Bạn đang chuyển sang chế độ THỰC TẾ. Bạn có muốn RESET toàn bộ số dư ví người dùng, quỹ Jackpot, doanh thu hệ thống và lịch sử giao dịch cược về 0 🍩 để làm sạch dữ liệu không?\n\n(Khuyến nghị Bấm OK)';
       if (window.confirm(confirmText)) {
         resetAll = true;
       }
@@ -220,12 +221,12 @@ const Admin: React.FC = () => {
   };
 
   const handleResetBalance = async (userId: string, username: string) => {
-    if (!window.confirm(`Bạn có chắc chắn muốn reset số dư ví của tài khoản '${username}' về 0 VND không?`)) {
+    if (!window.confirm(`Bạn có chắc chắn muốn reset số dư ví của tài khoản '${username}' về 0 🍩 không?`)) {
       return;
     }
     try {
       const response = await axios.post(`/api/admin/users/${userId}/reset-balance`);
-      showSuccess(response.data.message || 'Đã reset số dư về 0 VND thành công!');
+      showSuccess(response.data.message || 'Đã reset số dư về 0 🍩 thành công!');
       fetchUsers();
     } catch (err: any) {
       showError('Reset số dư thất bại: ' + (err.response?.data?.message || err.message));
@@ -654,7 +655,7 @@ const Admin: React.FC = () => {
                       <span>{match.awayTeam}</span>
                     </div>
                     <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px' }}>
-                      Tổng tiền cược hiện tại: <strong style={{ color: '#fff' }}>{match.poolAmount.toLocaleString('vi-VN')} VND</strong>
+                      Tổng tiền cược hiện tại: <strong style={{ color: '#fff' }}>{formatDonut(match.poolAmount)}</strong>
                     </div>
                   </div>
 

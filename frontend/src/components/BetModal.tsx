@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useWallet } from '../context/WalletContext';
 import { X, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { formatDonut } from '../utils/currency';
 
 interface Match {
   id: string;
@@ -49,7 +50,7 @@ const BetModal: React.FC<BetModalProps> = ({ match, onClose, onSuccess }) => {
     }
 
     if (isBalanceInsufficient) {
-      setError('Số dư ví không đủ 10,000 VND. Vui lòng nạp thêm tiền.');
+      setError('Số dư ví không đủ 10 🍩. Vui lòng nạp thêm tiền.');
       return;
     }
 
@@ -115,7 +116,7 @@ const BetModal: React.FC<BetModalProps> = ({ match, onClose, onSuccess }) => {
             <span style={{ fontWeight: 700, fontSize: '16px' }}>{match.awayTeam}</span>
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '8px' }}>
-            Tổng tiền cược hiện tại: <strong>{match.poolAmount.toLocaleString('vi-VN')} VND</strong>
+            Tổng tiền cược hiện tại: <strong>{formatDonut(match.poolAmount)}</strong>
           </div>
         </div>
 
@@ -312,11 +313,11 @@ const BetModal: React.FC<BetModalProps> = ({ match, onClose, onSuccess }) => {
                 fontWeight: 700,
                 cursor: 'not-allowed'
               }}
-              value="10,000 VND (Mặc định cố định)"
+              value="10 🍩 (Mặc định cố định)"
               readOnly
             />
             <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px' }}>
-              Mỗi vé cược tỉ số được quy định cố định là 10,000 VND. Số dư ví hiện tại: <strong>{balance.toLocaleString('vi-VN')} VND</strong>
+              Mỗi vé cược tỉ số được quy định cố định là 10 🍩. Số dư ví hiện tại: <strong>{formatDonut(balance)}</strong>
             </p>
           </div>
 

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useWallet } from '../context/WalletContext';
 import { Trophy, Wallet as WalletIcon, LogOut, LogIn, UserPlus, Award, Calendar, Settings, Menu, X, Activity } from 'lucide-react';
+import { formatDonut } from '../utils/currency';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -59,7 +60,7 @@ const Navbar: React.FC = () => {
           {user && (
             <div className="navbar-mobile-balance">
               <WalletIcon size={14} style={{ color: 'var(--primary)' }} />
-              <span>{balance.toLocaleString('vi-VN')} VND</span>
+              <span>{formatDonut(balance)}</span>
             </div>
           )}
           <button
@@ -170,7 +171,7 @@ const Navbar: React.FC = () => {
                 {/* Balance display (Desktop only via css display rule desktop-balance) */}
                 <div className="navbar-mobile-balance desktop-balance" style={{ display: 'flex' }}>
                   <WalletIcon size={16} style={{ color: 'var(--primary)' }} />
-                  <span>{balance.toLocaleString('vi-VN')} VND</span>
+                  <span>{formatDonut(balance)}</span>
                 </div>
 
                 {/* Username & LogOut */}
