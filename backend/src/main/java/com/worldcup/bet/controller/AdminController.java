@@ -1,6 +1,7 @@
 package com.worldcup.bet.controller;
 
 import com.worldcup.bet.entity.Match;
+import com.worldcup.bet.entity.SystemFund;
 import com.worldcup.bet.entity.User;
 import com.worldcup.bet.repository.MatchRepository;
 import com.worldcup.bet.repository.SystemFundRepository;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -64,7 +66,8 @@ public class AdminController {
             user.setApproved(true);
             userRepository.save(user);
 
-            return ResponseEntity.ok(Map.of("message", "Đã phê duyệt tài khoản '" + user.getUsername() + "' thành công!"));
+            return ResponseEntity
+                    .ok(Map.of("message", "Đã phê duyệt tài khoản '" + user.getUsername() + "' thành công!"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
@@ -150,7 +153,8 @@ public class AdminController {
         try {
             com.worldcup.bet.entity.SystemFund fund = systemFundRepository.findOrCreateSingleFund();
             if ("REAL".equals(fund.getSystemMode())) {
-                throw new IllegalArgumentException("Hệ thống đang ở chế độ THỰC TẾ. Không thể tạo trận đấu thủ công. Vui lòng chuyển sang chế độ GIẢ LẬP.");
+                throw new IllegalArgumentException(
+                        "Hệ thống đang ở chế độ THỰC TẾ. Không thể tạo trận đấu thủ công. Vui lòng chuyển sang chế độ GIẢ LẬP.");
             }
 
             String homeTeam = request.get("homeTeam");
@@ -274,7 +278,8 @@ public class AdminController {
                     .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Không tìm thấy người dùng"));
 
             com.worldcup.bet.entity.Wallet wallet = walletRepository.findByUserId(userId)
-                    .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Không tìm thấy ví của người dùng"));
+                    .orElseThrow(
+                            () -> new jakarta.persistence.EntityNotFoundException("Không tìm thấy ví của người dùng"));
 
             BigDecimal currentBalance = wallet.getBalance();
             if (currentBalance.compareTo(BigDecimal.ZERO) > 0) {
@@ -291,7 +296,8 @@ public class AdminController {
                 transactionRepository.save(transaction);
             }
 
-            return ResponseEntity.ok(Map.of("message", "Đã reset số dư của tài khoản '" + user.getUsername() + "' về 0 VND thành công!"));
+            return ResponseEntity.ok(Map.of("message",
+                    "Đã reset số dư của tài khoản '" + user.getUsername() + "' về 0 VND thành công!"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
@@ -308,11 +314,11 @@ public class AdminController {
                 wallet.setBalance(BigDecimal.ZERO);
                 walletRepository.save(wallet);
             }
-            
+
             // 2. Xóa sạch lịch sử giao dịch và cược
             transactionRepository.deleteAll();
             betRepository.deleteAll();
-            
+
             // 3. Reset pool các trận đấu về 0 và đặt status chưa cược/chưa kết toán
             List<com.worldcup.bet.entity.Match> matches = matchRepository.findAll();
             for (com.worldcup.bet.entity.Match match : matches) {
@@ -327,7 +333,8 @@ public class AdminController {
             fund.setPlatformFeeCollected(BigDecimal.ZERO);
             systemFundRepository.save(fund);
 
-            return ResponseEntity.ok(Map.of("message", "Đã reset toàn bộ số dư ví, các quỹ cược và lịch sử giao dịch về 0 VND thành công!"));
+            return ResponseEntity.ok(Map.of("message",
+                    "Đã reset toàn bộ số dư ví, các quỹ cược và lịch sử giao dịch về 0 VND thành công!"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
@@ -347,7 +354,7 @@ public class AdminController {
             if (description == null || description.trim().isEmpty()) {
                 description = "Cộng tiền thủ công bởi Admin";
             }
-            
+
             if (amount.compareTo(BigDecimal.ZERO) <= 0) {
                 throw new IllegalArgumentException("Số tiền cộng phải lớn hơn 0");
             }
@@ -357,7 +364,8 @@ public class AdminController {
 
             walletService.deposit(userId, amount, description);
 
-            return ResponseEntity.ok(Map.of("message", "Đã cộng thành công " + amount + " VND vào tài khoản '" + user.getUsername() + "'!"));
+            return ResponseEntity.ok(Map.of("message",
+                    "Đã cộng thành công " + amount + " VND vào tài khoản '" + user.getUsername() + "'!"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
@@ -372,7 +380,8 @@ public class AdminController {
             List<User> users = userRepository.findAll();
 
             Map<UUID, UUID> walletToUserMap = wallets.stream()
-                    .collect(java.util.stream.Collectors.toMap(com.worldcup.bet.entity.Wallet::getId, com.worldcup.bet.entity.Wallet::getUserId, (a, b) -> a));
+                    .collect(java.util.stream.Collectors.toMap(com.worldcup.bet.entity.Wallet::getId,
+                            com.worldcup.bet.entity.Wallet::getUserId, (a, b) -> a));
 
             Map<UUID, String> userToNameMap = users.stream()
                     .collect(java.util.stream.Collectors.toMap(User::getId, User::getUsername, (a, b) -> a));
@@ -382,7 +391,7 @@ public class AdminController {
                     .map(t -> {
                         UUID userId = walletToUserMap.get(t.getWalletId());
                         String username = userId != null ? userToNameMap.getOrDefault(userId, "N/A") : "N/A";
-                        
+
                         Map<String, Object> map = new java.util.HashMap<>();
                         map.put("id", t.getId());
                         map.put("walletId", t.getWalletId());
@@ -434,14 +443,39 @@ public class AdminController {
 
             // Cộng tiền vào ví
             com.worldcup.bet.entity.Wallet wallet = walletRepository.findById(tx.getWalletId())
-                    .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Không tìm thấy ví liên quan đến giao dịch"));
-            
+                    .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException(
+                            "Không tìm thấy ví liên quan đến giao dịch"));
+
             wallet.setBalance(wallet.getBalance().add(tx.getAmount()));
             walletRepository.save(wallet);
 
-            return ResponseEntity.ok(Map.of("message", "Đã duyệt giao dịch thành công. Cộng " + tx.getAmount() + " VND vào tài khoản!"));
+            return ResponseEntity.ok(
+                    Map.of("message", "Đã duyệt giao dịch thành công. Cộng " + tx.getAmount() + " VND vào tài khoản!"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
+
+
+
+    // Mô phỏng chia thưởng cho một trận đấu cụ thể mà không ghi nhận DB
+    @PostMapping("/matches/{matchId}/simulate-payout")
+    public ResponseEntity<?> simulateMatchPayout(
+            @PathVariable("matchId") UUID matchId,
+            @RequestBody Map<String, Object> body) {
+        try {
+            if (body.get("homeScore") == null || body.get("awayScore") == null) {
+                throw new IllegalArgumentException("Tỉ số không được để trống");
+            }
+            int homeScore = Integer.parseInt(body.get("homeScore").toString());
+            int awayScore = Integer.parseInt(body.get("awayScore").toString());
+
+            com.worldcup.bet.dto.PayoutSimulationResult result = betService.simulateMatchPayout(matchId, homeScore, awayScore);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+
 }

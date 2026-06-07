@@ -2,6 +2,7 @@ package com.worldcup.bet.service.impl;
 
 import com.github.f4b6a3.uuid.UuidCreator;
 import com.worldcup.bet.dto.BetRequest;
+import com.worldcup.bet.dto.PayoutSimulationResult;
 import com.worldcup.bet.entity.*;
 import com.worldcup.bet.repository.*;
 import com.worldcup.bet.service.BetService;
@@ -27,6 +28,7 @@ public class BetServiceImpl implements BetService {
     private final WalletService walletService;
     private final TransactionRepository transactionRepository;
     private final SystemFundRepository systemFundRepository;
+    private final UserRepository userRepository;
 
     private static final BigDecimal FIXED_BET_AMOUNT = new BigDecimal("10000.00");
 
@@ -164,5 +166,77 @@ public class BetServiceImpl implements BetService {
         match.setSettled(true);
         matchRepository.save(match);
         systemFundRepository.save(fund);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PayoutSimulationResult simulateMatchPayout(UUID matchId, int homeScore, int awayScore) {
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy trận đấu"));
+
+        BigDecimal totalPool = match.getPoolAmount();
+        BigDecimal platformFee = BigDecimal.ZERO;
+        BigDecimal netPool = BigDecimal.ZERO;
+        BigDecimal accumulatedJackpot = BigDecimal.ZERO;
+        BigDecimal totalPayoutPool = BigDecimal.ZERO;
+        BigDecimal payoutPerBet = BigDecimal.ZERO;
+        
+        SystemFund fund = systemFundRepository.findOrCreateSingleFund();
+        accumulatedJackpot = fund.getJackpotAmount();
+
+        if (totalPool.compareTo(BigDecimal.ZERO) > 0) {
+            platformFee = totalPool.multiply(new BigDecimal("0.10"));
+            netPool = totalPool.subtract(platformFee);
+        }
+
+        List<Bet> winningBets = betRepository.findWinningBets(matchId, homeScore, awayScore);
+        java.util.List<PayoutSimulationResult.WinnerDetail> winners = new java.util.ArrayList<>();
+        java.util.List<PayoutSimulationResult.LoserDetail> losers = new java.util.ArrayList<>();
+
+        if (!winningBets.isEmpty()) {
+            totalPayoutPool = netPool.add(accumulatedJackpot);
+            payoutPerBet = totalPayoutPool.divide(new BigDecimal(winningBets.size()), 2, RoundingMode.HALF_DOWN);
+            
+            for (Bet bet : winningBets) {
+                String username = userRepository.findById(bet.getUserId())
+                        .map(User::getUsername)
+                        .orElse("Unknown");
+                winners.add(new PayoutSimulationResult.WinnerDetail(username, payoutPerBet));
+            }
+        } else {
+            totalPayoutPool = BigDecimal.ZERO;
+            payoutPerBet = BigDecimal.ZERO;
+        }
+
+        // Tìm tất cả các cược khác cho trận này để lấy danh sách thua
+        List<Bet> allBets = betRepository.findByMatchId(matchId);
+        for (Bet bet : allBets) {
+            // Xem cược này có phải là cược thắng không
+            boolean isWinner = winningBets.stream().anyMatch(w -> w.getId().equals(bet.getId()));
+            if (!isWinner) {
+                String username = userRepository.findById(bet.getUserId())
+                        .map(User::getUsername)
+                        .orElse("Unknown");
+                String predictedScore = bet.getPredictedHomeScore() + "-" + bet.getPredictedAwayScore();
+                losers.add(new PayoutSimulationResult.LoserDetail(username, predictedScore));
+            }
+        }
+
+        return PayoutSimulationResult.builder()
+                .matchId(matchId)
+                .homeTeam(match.getHomeTeam())
+                .awayTeam(match.getAwayTeam())
+                .homeScore(homeScore)
+                .awayScore(awayScore)
+                .poolAmount(totalPool)
+                .platformFee(platformFee)
+                .netPool(netPool)
+                .accumulatedJackpot(accumulatedJackpot)
+                .totalPayoutPool(winningBets.isEmpty() ? netPool.add(accumulatedJackpot) : totalPayoutPool)
+                .winningBetsCount(winningBets.size())
+                .payoutPerBet(payoutPerBet)
+                .winners(winners)
+                .losers(losers)
+                .build();
     }
 }

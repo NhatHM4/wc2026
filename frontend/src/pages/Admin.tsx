@@ -95,6 +95,42 @@ const Admin: React.FC = () => {
   const [manualBankTxId, setManualBankTxId] = useState('');
   const [submittingApprove, setSubmittingApprove] = useState(false);
 
+
+
+  // Payout simulation states
+  const [simulationMatch, setSimulationMatch] = useState<Match | null>(null);
+  const [simHomeScore, setSimHomeScore] = useState<number>(0);
+  const [simAwayScore, setSimAwayScore] = useState<number>(0);
+  const [runningSimulation, setRunningSimulation] = useState(false);
+  const [simulationResult, setSimulationResult] = useState<PayoutSimulationResult | null>(null);
+
+  interface WinnerDetail {
+    username: string;
+    payoutAmount: number;
+  }
+
+  interface LoserDetail {
+    username: string;
+    predictedScore: string;
+  }
+
+  interface PayoutSimulationResult {
+    matchId: string;
+    homeTeam: string;
+    awayTeam: string;
+    homeScore: number;
+    awayScore: number;
+    poolAmount: number;
+    platformFee: number;
+    netPool: number;
+    accumulatedJackpot: number;
+    totalPayoutPool: number;
+    winningBetsCount: number;
+    payoutPerBet: number;
+    winners: WinnerDetail[];
+    losers: LoserDetail[];
+  }
+
   // Protection Check: only allow OWNER
   useEffect(() => {
     if (!user || user.role !== 'OWNER') {
@@ -389,6 +425,28 @@ const Admin: React.FC = () => {
     }
   };
 
+  const handleRunSimulation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!simulationMatch) return;
+
+    setRunningSimulation(true);
+    setSimulationResult(null);
+    try {
+      const response = await axios.post(`/api/admin/matches/${simulationMatch.id}/simulate-payout`, {
+        homeScore: simHomeScore,
+        awayScore: simAwayScore
+      });
+      setSimulationResult(response.data);
+      showSuccess('Mô phỏng chia thưởng thành công!');
+    } catch (err: any) {
+      showError('Mô phỏng thất bại: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setRunningSimulation(false);
+    }
+  };
+
+
+
   const getStatusBadge = (status: string, settled: boolean) => {
     if (settled) {
       return <span className="badge badge-finished" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--primary)', borderColor: 'rgba(16, 185, 129, 0.2)' }}>Đã kết toán</span>;
@@ -468,6 +526,7 @@ const Admin: React.FC = () => {
             <RefreshCw size={16} />
             Làm mới
           </button>
+
         </div>
       </div>
 
@@ -767,22 +826,45 @@ const Admin: React.FC = () => {
                   </div>
 
                   {/* Actions */}
-                  <div>
+                  <div style={{ display: 'flex', gap: '10px' }}>
                     {!match.settled && (
-                      <button
-                        onClick={() => {
-                          setSelectedMatch(match);
-                          setHomeScoreInput(match.homeScore || 0);
-                          setAwayScoreInput(match.awayScore || 0);
-                        }}
-                        className="btn btn-primary"
-                        style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px' }}
-                        disabled={systemMode === 'REAL'}
-                        title={systemMode === 'REAL' ? 'Không thể cập nhật tỉ số thủ công khi ở chế độ THỰC TẾ' : ''}
-                      >
-                        <Play size={14} />
-                        {systemMode === 'REAL' ? 'Khóa (Chế độ Thực tế)' : 'Nhập tỉ số & Quyết toán'}
-                      </button>
+                      <>
+                        <button
+                          onClick={() => {
+                            setSimulationMatch(match);
+                            setSimHomeScore(match.homeScore || 0);
+                            setSimAwayScore(match.awayScore || 0);
+                            setSimulationResult(null);
+                          }}
+                          className="btn btn-secondary"
+                          style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '6px', 
+                            padding: '8px 16px',
+                            background: 'rgba(239, 68, 68, 0.1)',
+                            color: 'var(--primary)',
+                            border: '1px solid rgba(239, 68, 68, 0.2)'
+                          }}
+                        >
+                          <Coins size={14} />
+                          Mô phỏng Payout
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedMatch(match);
+                            setHomeScoreInput(match.homeScore || 0);
+                            setAwayScoreInput(match.awayScore || 0);
+                          }}
+                          className="btn btn-primary"
+                          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px' }}
+                          disabled={systemMode === 'REAL'}
+                          title={systemMode === 'REAL' ? 'Không thể cập nhật tỉ số thủ công khi ở chế độ THỰC TẾ' : ''}
+                        >
+                          <Play size={14} />
+                          {systemMode === 'REAL' ? 'Khóa (Chế độ Thực tế)' : 'Nhập tỉ số & Quyết toán'}
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -1400,6 +1482,174 @@ const Admin: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+
+
+      {/* Modal: Mô phỏng Payout */}
+      {simulationMatch && (
+        <div className="modal-overlay">
+          <div className="glass-panel modal-container" style={{ maxWidth: '650px', width: '95%', maxHeight: '90vh', overflowY: 'auto' }}>
+            <button onClick={() => { setSimulationMatch(null); setSimulationResult(null); }} style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-muted)',
+              cursor: 'pointer'
+            }}>
+              <X size={24} />
+            </button>
+
+            <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Mô phỏng Chia thưởng Payout</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px' }}>
+              Trực quan hóa thuật toán và kết quả chia thưởng cho trận đấu <strong>{simulationMatch.homeTeam} vs {simulationMatch.awayTeam}</strong> dựa trên dữ liệu cược thực tế hiện tại.
+            </p>
+
+            <form onSubmit={handleRunSimulation} style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', alignItems: 'center', marginBottom: '20px' }}>
+                <div style={{ flex: 1, textAlign: 'right' }}>
+                  <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>{simulationMatch.homeTeam}</label>
+                  <input
+                    type="number"
+                    min="0"
+                    className="form-input"
+                    style={{ textAlign: 'center', fontSize: '18px', fontWeight: 700, width: '80px', display: 'inline-block' }}
+                    value={simHomeScore}
+                    onChange={(e) => setSimHomeScore(parseInt(e.target.value) || 0)}
+                    required
+                  />
+                </div>
+                <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-muted)', paddingTop: '20px' }}>-</div>
+                <div style={{ flex: 1, textAlign: 'left' }}>
+                  <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>{simulationMatch.awayTeam}</label>
+                  <input
+                    type="number"
+                    min="0"
+                    className="form-input"
+                    style={{ textAlign: 'center', fontSize: '18px', fontWeight: 700, width: '80px', display: 'inline-block' }}
+                    value={simAwayScore}
+                    onChange={(e) => setSimAwayScore(parseInt(e.target.value) || 0)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => { setSimulationMatch(null); setSimulationResult(null); }}
+                >
+                  Đóng
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={runningSimulation}
+                  style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}
+                >
+                  {runningSimulation ? 'Đang mô phỏng...' : '⚡ Chạy mô phỏng'}
+                </button>
+              </div>
+            </form>
+
+            {simulationResult && (
+              <div style={{ marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
+                <h4 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '12px', color: 'var(--primary)' }}>KẾT QUẢ PHÂN CHIA CHI TIẾT</h4>
+                
+                {/* Financial Summary */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>Tổng Pool Trận</div>
+                    <div style={{ fontSize: '14px', fontWeight: 700 }}>{formatDonut(simulationResult.poolAmount)}</div>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>Phí Hệ Thống (10%)</div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--accent)' }}>{formatDonut(simulationResult.platformFee)}</div>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>Net Pool (90%)</div>
+                    <div style={{ fontSize: '14px', fontWeight: 700 }}>{formatDonut(simulationResult.netPool)}</div>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>Jackpot Tích Lũy</div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)' }}>{formatDonut(simulationResult.accumulatedJackpot)}</div>
+                  </div>
+                </div>
+
+                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border)', marginBottom: '20px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Tổng Quỹ Chia (Net Pool + Jackpot)</div>
+                  <div style={{ fontSize: '24px', fontWeight: 800, color: '#34d399' }}>{formatDonut(simulationResult.totalPayoutPool)}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '8px' }}>
+                    Có <strong style={{ color: '#fff' }}>{simulationResult.winningBetsCount}</strong> vé cược thắng tỉ số {simHomeScore}-{simAwayScore}
+                  </div>
+                  {simulationResult.winningBetsCount > 0 && (
+                    <div style={{ fontSize: '15px', fontWeight: 700, marginTop: '4px', color: 'var(--primary)' }}>
+                      Mỗi vé thắng nhận: {formatDonut(simulationResult.payoutPerBet)}
+                    </div>
+                  )}
+                </div>
+
+                {/* Winners and Losers Lists */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  {/* Winners */}
+                  <div>
+                    <h5 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px', color: '#34d399' }}>Người trúng cược ({simulationResult.winners.length})</h5>
+                    <div style={{ background: '#0d1117', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px', height: '150px', overflowY: 'auto' }}>
+                      {simulationResult.winners.length === 0 ? (
+                        <div style={{ color: 'var(--text-muted)', fontSize: '12px', textAlign: 'center', marginTop: '50px' }}>Không có ai trúng</div>
+                      ) : (
+                        simulationResult.winners.map((w: any, idx: number) => (
+                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid rgba(255,255,255,0.02)', fontSize: '12px' }}>
+                            <span style={{ fontWeight: 600 }}>{w.username}</span>
+                            <span style={{ color: '#34d399' }}>+{formatDonut(w.payoutAmount)}</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Losers */}
+                  <div>
+                    <h5 style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px', color: 'var(--text-muted)' }}>Người trượt cược ({simulationResult.losers.length})</h5>
+                    <div style={{ background: '#0d1117', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px', height: '150px', overflowY: 'auto' }}>
+                      {simulationResult.losers.length === 0 ? (
+                        <div style={{ color: 'var(--text-muted)', fontSize: '12px', textAlign: 'center', marginTop: '50px' }}>Không có cược thua</div>
+                      ) : (
+                        simulationResult.losers.map((l: any, idx: number) => (
+                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid rgba(255,255,255,0.02)', fontSize: '12px' }}>
+                            <span>{l.username}</span>
+                            <span style={{ color: 'var(--text-muted)' }}>Cược {l.predictedScore}</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {simulationResult.winningBetsCount === 0 && (
+                  <div style={{ 
+                    marginTop: '20px', 
+                    padding: '12px', 
+                    borderRadius: '8px', 
+                    background: 'rgba(59, 130, 246, 0.1)', 
+                    border: '1px solid rgba(59, 130, 246, 0.2)', 
+                    color: '#60a5fa', 
+                    fontSize: '12px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px' 
+                  }}>
+                    <AlertCircle size={16} />
+                    <span>Không có người đoán đúng tỉ số {simHomeScore}-{simAwayScore}. Quỹ thưởng Net Pool ({formatDonut(simulationResult.netPool)}) sẽ được Rollover (cộng dồn) vào quỹ Jackpot hệ thống để chia cho trận đấu có người trúng tiếp theo.</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
