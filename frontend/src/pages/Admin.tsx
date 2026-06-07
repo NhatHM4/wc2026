@@ -26,15 +26,29 @@ interface UserEntry {
   createdAt: string;
 }
 
+interface Transaction {
+  id: string;
+  walletId: string;
+  username: string;
+  amount: number;
+  type: string;
+  description: string;
+  status: string;
+  bankTxId: string | null;
+  createdAt: string;
+}
+
 const Admin: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   
-  const [activeTab, setActiveTab] = useState<'matches' | 'users'>('matches');
+  const [activeTab, setActiveTab] = useState<'matches' | 'users' | 'transactions'>('matches');
   const [matches, setMatches] = useState<Match[]>([]);
   const [users, setUsers] = useState<UserEntry[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [loadingTransactions, setLoadingTransactions] = useState(false);
   
   // Notification states
   const [successMsg, setSuccessMsg] = useState('');
@@ -69,6 +83,17 @@ const Admin: React.FC = () => {
   const [newMatchTime, setNewMatchTime] = useState('');
   const [creatingMatch, setCreatingMatch] = useState(false);
   const [syncingAPI, setSyncingAPI] = useState(false);
+
+  // Modal states for manual deposit
+  const [selectedUserForDeposit, setSelectedUserForDeposit] = useState<UserEntry | null>(null);
+  const [depositAmount, setDepositAmount] = useState<number>(0);
+  const [depositDescription, setDepositDescription] = useState('');
+  const [submittingDeposit, setSubmittingDeposit] = useState(false);
+
+  // Modal states for manual transaction approve
+  const [selectedTransactionForApprove, setSelectedTransactionForApprove] = useState<Transaction | null>(null);
+  const [manualBankTxId, setManualBankTxId] = useState('');
+  const [submittingApprove, setSubmittingApprove] = useState(false);
 
   // Protection Check: only allow OWNER
   useEffect(() => {
@@ -117,11 +142,24 @@ const Admin: React.FC = () => {
     }
   };
 
+  const fetchTransactions = async () => {
+    setLoadingTransactions(true);
+    try {
+      const response = await axios.get('/api/admin/transactions');
+      setTransactions(response.data);
+    } catch (err: any) {
+      setErrorMsg('Không thể tải danh sách giao dịch: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setLoadingTransactions(false);
+    }
+  };
+
   useEffect(() => {
     if (user && user.role === 'OWNER') {
       fetchMatches();
       fetchUsers();
       fetchSystemMode();
+      fetchTransactions();
     }
   }, [user]);
 
@@ -303,6 +341,54 @@ const Admin: React.FC = () => {
     }
   };
 
+  const handleManualDeposit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUserForDeposit) return;
+    if (depositAmount <= 0) {
+      showError('Số tiền cộng phải lớn hơn 0');
+      return;
+    }
+
+    setSubmittingDeposit(true);
+    try {
+      const response = await axios.post(`/api/admin/users/${selectedUserForDeposit.id}/deposit`, {
+        amount: depositAmount,
+        description: depositDescription
+      });
+      showSuccess(response.data.message || 'Cộng tiền thành công!');
+      setSelectedUserForDeposit(null);
+      setDepositAmount(0);
+      setDepositDescription('');
+      fetchUsers();
+      fetchTransactions();
+    } catch (err: any) {
+      showError('Cộng tiền thất bại: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setSubmittingDeposit(false);
+    }
+  };
+
+  const handleApproveTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTransactionForApprove) return;
+
+    setSubmittingApprove(true);
+    try {
+      const response = await axios.post(`/api/admin/transactions/${selectedTransactionForApprove.id}/approve`, {
+        bankTxId: manualBankTxId
+      });
+      showSuccess(response.data.message || 'Duyệt giao dịch thành công!');
+      setSelectedTransactionForApprove(null);
+      setManualBankTxId('');
+      fetchUsers();
+      fetchTransactions();
+    } catch (err: any) {
+      showError('Duyệt giao dịch thất bại: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setSubmittingApprove(false);
+    }
+  };
+
   const getStatusBadge = (status: string, settled: boolean) => {
     if (settled) {
       return <span className="badge badge-finished" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--primary)', borderColor: 'rgba(16, 185, 129, 0.2)' }}>Đã kết toán</span>;
@@ -375,7 +461,7 @@ const Admin: React.FC = () => {
             {syncingAPI ? 'Đang đồng bộ...' : 'Đồng bộ API'}
           </button>
           <button 
-            onClick={() => { fetchMatches(); fetchUsers(); fetchSystemMode(); showSuccess('Đã cập nhật dữ liệu mới nhất!'); }}
+            onClick={() => { fetchMatches(); fetchUsers(); fetchSystemMode(); fetchTransactions(); showSuccess('Đã cập nhật dữ liệu mới nhất!'); }}
             className="btn btn-secondary" 
             style={{ display: 'flex', gap: '8px', padding: '10px 16px' }}
           >
@@ -607,6 +693,27 @@ const Admin: React.FC = () => {
           <Users size={18} />
           Quản lý người dùng
         </button>
+
+        <button
+          onClick={() => { setActiveTab('transactions'); fetchTransactions(); }}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: activeTab === 'transactions' ? '#fff' : 'var(--text-muted)',
+            fontWeight: 700,
+            fontSize: '16px',
+            padding: '12px 16px',
+            cursor: 'pointer',
+            borderBottom: activeTab === 'transactions' ? '3px solid var(--primary)' : '3px solid transparent',
+            transition: 'all 0.2s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <Coins size={18} />
+          Quản lý giao dịch nạp
+        </button>
       </div>
 
       {/* Tab Contents */}
@@ -683,7 +790,7 @@ const Admin: React.FC = () => {
             </div>
           )}
         </div>
-      ) : (
+      ) : activeTab === 'users' ? (
         <div>
           {loadingUsers ? (
             <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
@@ -771,6 +878,26 @@ const Admin: React.FC = () => {
                           </button>
                         )}
                         <button
+                          onClick={() => {
+                            setSelectedUserForDeposit(u);
+                            setDepositAmount(10000);
+                            setDepositDescription('Cộng tiền thủ công bởi Admin');
+                          }}
+                          className="btn btn-primary"
+                          style={{ 
+                            padding: '6px 12px', 
+                            display: 'inline-flex', 
+                            gap: '6px', 
+                            fontSize: '13px',
+                            background: 'rgba(16, 185, 129, 0.15)',
+                            color: 'var(--primary)',
+                            border: '1px solid rgba(16, 185, 129, 0.3)'
+                          }}
+                        >
+                          <Coins size={12} />
+                          Cộng Tiền
+                        </button>
+                        <button
                           onClick={() => setSelectedUser(u)}
                           className="btn btn-secondary"
                           style={{ padding: '6px 12px', display: 'inline-flex', gap: '6px', fontSize: '13px' }}
@@ -794,6 +921,108 @@ const Admin: React.FC = () => {
                           <Coins size={12} />
                           Reset Tiền
                         </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div>
+          {loadingTransactions ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+              Đang tải danh sách giao dịch...
+            </div>
+          ) : transactions.length === 0 ? (
+            <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+              Chưa có giao dịch nào trên hệ thống.
+            </div>
+          ) : (
+            <div className="glass-panel table-scroll-container" style={{ padding: '8px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                    <th style={{ padding: '16px' }}>Thời gian</th>
+                    <th style={{ padding: '16px' }}>Người dùng</th>
+                    <th style={{ padding: '16px' }}>Số tiền</th>
+                    <th style={{ padding: '16px' }}>Loại</th>
+                    <th style={{ padding: '16px' }}>Mô tả</th>
+                    <th style={{ padding: '16px' }}>Trạng thái</th>
+                    <th style={{ padding: '16px' }}>Mã NH</th>
+                    <th style={{ padding: '16px', textAlign: 'right' }}>Hành động</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {transactions.map((t) => (
+                    <tr key={t.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                      <td style={{ padding: '16px', fontSize: '13px', color: 'var(--text-muted)' }}>
+                        {new Date(t.createdAt).toLocaleString('vi-VN')}
+                      </td>
+                      <td style={{ padding: '16px', fontWeight: 600 }}>{t.username}</td>
+                      <td style={{ 
+                        padding: '16px', 
+                        fontWeight: 700, 
+                        color: t.amount > 0 ? 'var(--primary)' : 'var(--error)' 
+                      }}>
+                        {t.amount > 0 ? '+' : ''}{formatDonut(t.amount)}
+                      </td>
+                      <td style={{ padding: '16px', fontSize: '13px' }}>
+                        <span style={{
+                          padding: '3px 8px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          backgroundColor: t.type === 'DEPOSIT' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                          color: t.type === 'DEPOSIT' ? 'var(--primary)' : 'var(--error)',
+                          border: t.type === 'DEPOSIT' ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(239, 68, 68, 0.2)'
+                        }}>
+                          {t.type}
+                        </span>
+                      </td>
+                      <td style={{ padding: '16px', fontSize: '13px', color: 'var(--text-muted)' }}>{t.description}</td>
+                      <td style={{ padding: '16px' }}>
+                        <span style={{
+                          padding: '3px 8px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          backgroundColor: 
+                            t.status === 'SUCCESS' ? 'rgba(16, 185, 129, 0.1)' : 
+                            t.status === 'PENDING' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(255,255,255,0.05)',
+                          color: 
+                            t.status === 'SUCCESS' ? 'var(--primary)' : 
+                            t.status === 'PENDING' ? 'var(--accent)' : 'var(--text-muted)',
+                          border: 
+                            t.status === 'SUCCESS' ? '1px solid rgba(16, 185, 129, 0.2)' : 
+                            t.status === 'PENDING' ? '1px solid rgba(245, 158, 11, 0.2)' : '1px solid var(--border)'
+                        }}>
+                          {t.status}
+                        </span>
+                      </td>
+                      <td style={{ padding: '16px', fontSize: '13px', fontFamily: 'monospace' }}>
+                        {t.bankTxId || '-'}
+                      </td>
+                      <td style={{ padding: '16px', textAlign: 'right' }}>
+                        {t.type === 'DEPOSIT' && t.status !== 'SUCCESS' && (
+                          <button
+                            onClick={() => {
+                              setSelectedTransactionForApprove(t);
+                              setManualBankTxId('');
+                            }}
+                            className="btn btn-primary"
+                            style={{ 
+                              padding: '6px 12px', 
+                              fontSize: '13px',
+                              background: 'rgba(16, 185, 129, 0.15)',
+                              color: 'var(--primary)',
+                              border: '1px solid rgba(16, 185, 129, 0.3)'
+                            }}
+                          >
+                            Duyệt
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -1029,6 +1258,145 @@ const Admin: React.FC = () => {
                   disabled={creatingMatch}
                 >
                   {creatingMatch ? 'Đang tạo...' : 'Tạo trận đấu'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Cộng tiền thủ công */}
+      {selectedUserForDeposit && (
+        <div className="modal-overlay">
+          <div className="glass-panel modal-container" style={{ maxWidth: '400px' }}>
+            <button onClick={() => setSelectedUserForDeposit(null)} style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-muted)',
+              cursor: 'pointer'
+            }}>
+              <X size={24} />
+            </button>
+
+            <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Cộng tiền thủ công</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '24px' }}>
+              Cộng tiền trực tiếp vào tài khoản <strong style={{ color: '#fff' }}>{selectedUserForDeposit.username}</strong>.
+            </p>
+
+            <form onSubmit={handleManualDeposit}>
+              <div className="form-group" style={{ marginBottom: '16px' }}>
+                <label className="form-label">Số tiền cộng (VND)</label>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  className="form-input"
+                  placeholder="Nhập số tiền..."
+                  value={depositAmount || ''}
+                  onChange={(e) => setDepositAmount(parseInt(e.target.value) || 0)}
+                  disabled={submittingDeposit}
+                  required
+                />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '24px' }}>
+                <label className="form-label">Mô tả giao dịch</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Lý do cộng tiền..."
+                  value={depositDescription}
+                  onChange={(e) => setDepositDescription(e.target.value)}
+                  disabled={submittingDeposit}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setSelectedUserForDeposit(null)}
+                  disabled={submittingDeposit}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={submittingDeposit}
+                >
+                  {submittingDeposit ? 'Đang cộng...' : 'Xác nhận cộng tiền'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Duyệt giao dịch nạp tiền */}
+      {selectedTransactionForApprove && (
+        <div className="modal-overlay">
+          <div className="glass-panel modal-container" style={{ maxWidth: '400px' }}>
+            <button onClick={() => setSelectedTransactionForApprove(null)} style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-muted)',
+              cursor: 'pointer'
+            }}>
+              <X size={24} />
+            </button>
+
+            <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Duyệt giao dịch lỗi</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '16px' }}>
+              Xác nhận duyệt giao dịch nạp tiền trị giá <strong style={{ color: 'var(--primary)' }}>{formatDonut(selectedTransactionForApprove.amount)}</strong> cho người dùng <strong style={{ color: '#fff' }}>{selectedTransactionForApprove.username}</strong>.
+            </p>
+            <div style={{
+              fontSize: '13px',
+              background: 'rgba(255,255,255,0.03)',
+              padding: '12px',
+              borderRadius: '8px',
+              marginBottom: '24px',
+              color: 'var(--text-muted)',
+              border: '1px solid var(--border)'
+            }}>
+              <div>Mã chuyển khoản: <strong>{selectedTransactionForApprove.description}</strong></div>
+              <div>Trạng thái hiện tại: <strong>{selectedTransactionForApprove.status}</strong></div>
+            </div>
+
+            <form onSubmit={handleApproveTransaction}>
+              <div className="form-group" style={{ marginBottom: '24px' }}>
+                <label className="form-label">Mã giao dịch ngân hàng (Tùy chọn)</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Nhập mã GD ngân hàng nếu có..."
+                  value={manualBankTxId}
+                  onChange={(e) => setManualBankTxId(e.target.value)}
+                  disabled={submittingApprove}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setSelectedTransactionForApprove(null)}
+                  disabled={submittingApprove}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={submittingApprove}
+                >
+                  {submittingApprove ? 'Đang duyệt...' : 'Xác nhận duyệt'}
                 </button>
               </div>
             </form>

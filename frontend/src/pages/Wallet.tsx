@@ -341,7 +341,7 @@ const Wallet: React.FC = () => {
           )}
 
           <div className="form-group" style={{ marginBottom: '24px' }}>
-            <label className="form-label">Nhập số tiền giao dịch (🍩)</label>
+            <label className="form-label">Nhập số bánh muốn order (🍩)</label>
             <input
               type="number"
               className="form-input"
@@ -410,12 +410,12 @@ const Wallet: React.FC = () => {
                 {transactions.map(tx => {
                   const txType = getTransactionTypeStyle(tx.type, tx.description);
                   const isNegative = tx.amount < 0;
-                  
+
                   // Style based on status for a premium look
                   let amountColor = 'var(--primary)';
                   let amountDecoration = 'none';
                   let amountPrefix = isNegative ? '' : '+';
-                  
+
                   if (tx.status === 'EXPIRED' || tx.status === 'CANCELLED') {
                     amountColor = 'var(--text-muted)';
                     amountDecoration = 'line-through';

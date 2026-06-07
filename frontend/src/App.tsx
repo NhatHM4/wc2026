@@ -70,7 +70,7 @@ const AppContent: React.FC = () => {
   const navigate = useNavigate();
   const [encryptMode, setEncryptMode] = useState(false);
   const [unlocked, setUnlocked] = useState(() => {
-    return sessionStorage.getItem('appUnlocked') === 'true';
+    return localStorage.getItem('appUnlocked') === 'true';
   });
   const [checkingConfig, setCheckingConfig] = useState(true);
 
@@ -94,7 +94,7 @@ const AppContent: React.FC = () => {
 
   const handleUnlock = (code: string): boolean => {
     if (code === 'iloveyou') {
-      sessionStorage.setItem('appUnlocked', 'true');
+      localStorage.setItem('appUnlocked', 'true');
       setUnlocked(true);
       if (!user) {
         navigate('/hibro');

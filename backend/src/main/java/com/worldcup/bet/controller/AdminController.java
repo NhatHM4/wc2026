@@ -10,6 +10,7 @@ import com.worldcup.bet.repository.TransactionRepository;
 import com.worldcup.bet.entity.Transaction;
 import com.worldcup.bet.service.BetService;
 import com.worldcup.bet.service.MatchSyncService;
+import com.worldcup.bet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,6 +36,7 @@ public class AdminController {
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final com.worldcup.bet.repository.BetRepository betRepository;
+    private final WalletService walletService;
 
     // Lấy danh sách tất cả người dùng (không trả về mật khẩu)
     @GetMapping("/users")
@@ -326,6 +328,118 @@ public class AdminController {
             systemFundRepository.save(fund);
 
             return ResponseEntity.ok(Map.of("message", "Đã reset toàn bộ số dư ví, các quỹ cược và lịch sử giao dịch về 0 VND thành công!"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    // Cộng tiền thủ công cho người dùng (Manual Deposit)
+    @PostMapping("/users/{userId}/deposit")
+    public ResponseEntity<?> depositUserBalance(
+            @PathVariable("userId") UUID userId,
+            @RequestBody Map<String, Object> body) {
+        try {
+            if (body.get("amount") == null) {
+                throw new IllegalArgumentException("Số tiền cộng không được để trống");
+            }
+            BigDecimal amount = new BigDecimal(body.get("amount").toString());
+            String description = (String) body.get("description");
+            if (description == null || description.trim().isEmpty()) {
+                description = "Cộng tiền thủ công bởi Admin";
+            }
+            
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Số tiền cộng phải lớn hơn 0");
+            }
+
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Không tìm thấy người dùng"));
+
+            walletService.deposit(userId, amount, description);
+
+            return ResponseEntity.ok(Map.of("message", "Đã cộng thành công " + amount + " VND vào tài khoản '" + user.getUsername() + "'!"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    // Lấy danh sách tất cả giao dịch nạp tiền/rút tiền để đối soát & xử lý lỗi
+    @GetMapping("/transactions")
+    public ResponseEntity<?> getAllTransactions() {
+        try {
+            List<Transaction> transactions = transactionRepository.findAll();
+            List<com.worldcup.bet.entity.Wallet> wallets = walletRepository.findAll();
+            List<User> users = userRepository.findAll();
+
+            Map<UUID, UUID> walletToUserMap = wallets.stream()
+                    .collect(java.util.stream.Collectors.toMap(com.worldcup.bet.entity.Wallet::getId, com.worldcup.bet.entity.Wallet::getUserId, (a, b) -> a));
+
+            Map<UUID, String> userToNameMap = users.stream()
+                    .collect(java.util.stream.Collectors.toMap(User::getId, User::getUsername, (a, b) -> a));
+
+            List<Map<String, Object>> result = transactions.stream()
+                    .sorted((t1, t2) -> t2.getCreatedAt().compareTo(t1.getCreatedAt()))
+                    .map(t -> {
+                        UUID userId = walletToUserMap.get(t.getWalletId());
+                        String username = userId != null ? userToNameMap.getOrDefault(userId, "N/A") : "N/A";
+                        
+                        Map<String, Object> map = new java.util.HashMap<>();
+                        map.put("id", t.getId());
+                        map.put("walletId", t.getWalletId());
+                        map.put("username", username);
+                        map.put("amount", t.getAmount());
+                        map.put("type", t.getType());
+                        map.put("description", t.getDescription());
+                        map.put("status", t.getStatus());
+                        map.put("bankTxId", t.getBankTxId());
+                        map.put("createdAt", t.getCreatedAt());
+                        return map;
+                    })
+                    .toList();
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    // Duyệt thủ công giao dịch nạp tiền bị lỗi/chờ (Manual Approve Transaction)
+    @PostMapping("/transactions/{transactionId}/approve")
+    @org.springframework.transaction.annotation.Transactional
+    public ResponseEntity<?> approveTransaction(
+            @PathVariable("transactionId") UUID transactionId,
+            @RequestBody(required = false) Map<String, String> body) {
+        try {
+            Transaction tx = transactionRepository.findById(transactionId)
+                    .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Không tìm thấy giao dịch"));
+
+            if ("SUCCESS".equals(tx.getStatus())) {
+                throw new IllegalArgumentException("Giao dịch này đã thành công từ trước");
+            }
+
+            String bankTxId = body != null ? body.get("bankTxId") : null;
+            if (bankTxId == null || bankTxId.trim().isEmpty()) {
+                bankTxId = "MANUAL_" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+            }
+
+            // Kiểm tra trùng bankTxId
+            if (transactionRepository.existsByBankTxId(bankTxId) && !bankTxId.startsWith("MANUAL_")) {
+                throw new IllegalArgumentException("Mã giao dịch ngân hàng đã tồn tại trên hệ thống");
+            }
+
+            // Cập nhật trạng thái
+            tx.setStatus("SUCCESS");
+            tx.setBankTxId(bankTxId);
+            transactionRepository.save(tx);
+
+            // Cộng tiền vào ví
+            com.worldcup.bet.entity.Wallet wallet = walletRepository.findById(tx.getWalletId())
+                    .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Không tìm thấy ví liên quan đến giao dịch"));
+            
+            wallet.setBalance(wallet.getBalance().add(tx.getAmount()));
+            walletRepository.save(wallet);
+
+            return ResponseEntity.ok(Map.of("message", "Đã duyệt giao dịch thành công. Cộng " + tx.getAmount() + " VND vào tài khoản!"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
